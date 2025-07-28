@@ -1,212 +1,276 @@
 <template>
-  <div class="dashboard-container">
-    <!-- Header -->
-    <header class="dashboard-header">
-      <div class="header-left">
-        <h1>Portfolio Dashboard</h1>
-      </div>
-      <div class="header-center">
-        <div class="search-container">
-          <input 
-            v-model="searchQuery" 
-            @input="searchStocks"
-            type="text" 
-            placeholder="Search for stocks..." 
-            class="search-input"
-          />
-          <div v-if="searchResults.length > 0" class="search-results">
-            <div 
-              v-for="result in searchResults" 
-              :key="result"
-              @click="selectStock(result)"
-              class="search-result-item"
-            >
-              {{ result }}
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="header-right">
-        <div class="user-profile">
-          <span class="username">Trader</span>
-          <div class="profile-avatar">👤</div>
-        </div>
-      </div>
-    </header>
-
-    <!-- Summary Cards -->
-    <div class="summary-cards">
-      <div class="summary-card balance-card">
-        <div class="card-icon">💰</div>
-        <div class="card-content">
-          <h3>Total Value</h3>
-          <p class="card-value">${{ formatCurrency(portfolio.totalValue || 0) }}</p>
-          <span class="card-change" :class="{ positive: portfolio.totalProfitLoss >= 0, negative: portfolio.totalProfitLoss < 0 }">
-            {{ portfolio.totalProfitLoss >= 0 ? '+' : '' }}${{ formatCurrency(portfolio.totalProfitLoss || 0) }}
-          </span>
+  <div class="portfolio-app">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <i class="icon">📊</i>
+          <span>Portfolio Manager</span>
         </div>
       </div>
       
-      <div class="summary-card">
-        <div class="card-icon">📈</div>
-        <div class="card-content">
-          <h3>Total Cost</h3>
-          <p class="card-value">${{ formatCurrency(portfolio.totalCost || 0) }}</p>
-        </div>
-      </div>
+      <ul class="nav-menu">
+        <li class="nav-item active">
+          <a href="#" class="nav-link">
+            <i class="nav-icon">🏠</i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon">📈</i>
+            <span>STOCK</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon">🏛️</i>
+            <span>BOND</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon">💰</i>
+            <span>CASH</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon">📊</i>
+            <span>Analytics</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon">📄</i>
+            <span>Transactions</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon">📋</i>
+            <span>Reports</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon">⚙️</i>
+            <span>Settings</span>
+          </a>
+        </li>
+      </ul>
       
-      <div class="summary-card">
-        <div class="card-icon">📊</div>
-        <div class="card-content">
-          <h3>Portfolio Items</h3>
-          <p class="card-value">{{ portfolio.totalItems || 0 }}</p>
+      <div class="user-profile-sidebar">
+        <div class="user-avatar">
+          <span>JD</span>
+        </div>
+        <div class="user-info">
+          <div class="user-name">John Doe</div>
+          <div class="user-email">john.doe@example.com</div>
         </div>
       </div>
-      
-      <div class="summary-card">
-        <div class="card-icon">📉</div>
-        <div class="card-content">
-          <h3>Return %</h3>
-          <p class="card-value" :class="{ positive: portfolio.totalProfitLossPercent >= 0, negative: portfolio.totalProfitLossPercent < 0 }">
-            {{ portfolio.totalProfitLossPercent >= 0 ? '+' : '' }}{{ formatPercent(portfolio.totalProfitLossPercent || 0) }}%
-          </p>
-        </div>
-      </div>
-    </div>
+    </nav>
 
     <!-- Main Content -->
-    <div class="main-content">
-      <!-- Left Column -->
-      <div class="left-column">
-        <!-- Portfolio Performance Chart -->
-        <div class="chart-section">
-          <h3>Portfolio Performance</h3>
-          <div class="chart-container">
-            <canvas ref="performanceChart"></canvas>
+    <main class="main-content">
+      <!-- Header -->
+      <header class="main-header">
+        <div class="header-left">
+          <h1>Dashboard</h1>
+        </div>
+        <div class="header-right">
+          <span class="last-updated">Last updated: 7/28/2025</span>
+        </div>
+      </header>
+
+      <!-- Portfolio Summary Cards -->
+      <section class="portfolio-summary">
+        <div class="summary-card total-portfolio">
+          <div class="card-header">
+            <span class="card-title">Total Portfolio Value</span>
+            <i class="card-icon">💰</i>
+          </div>
+          <div class="card-content">
+            <div class="card-value">${{ formatCurrency(portfolio.totalValue || 45231.89) }}</div>
+            <div class="card-change positive">
+              <span class="change-icon">📈</span>
+              <span>+2.5% from last month</span>
+            </div>
           </div>
         </div>
 
-        <!-- Portfolio Items -->
-        <div class="portfolio-section">
-          <div class="section-header">
-            <h3>Your Holdings</h3>
-            <button @click="showBuyModal = true" class="btn btn-primary btn-sm">
-              + Buy Stock
-            </button>
+        <div class="summary-card stocks">
+          <div class="card-header">
+            <span class="card-title">Stocks</span>
+            <i class="card-icon">📊</i>
           </div>
-          
-          <div v-if="loading && portfolio.items.length === 0" class="loading">
-            Loading portfolio...
+          <div class="card-content">
+            <div class="card-value">$28,459.00</div>
+            <div class="card-change positive">
+              <span class="change-icon">📈</span>
+              <span>+4.3% from last month</span>
+            </div>
           </div>
-          <div v-else-if="portfolio.items.length === 0" class="empty-state">
-            <p>No stocks in your portfolio yet. Start by buying your first stock!</p>
+        </div>
+
+        <div class="summary-card bonds">
+          <div class="card-header">
+            <span class="card-title">Bonds</span>
+            <i class="card-icon">📊</i>
           </div>
-          <div v-else class="holdings-grid">
-            <div
-              v-for="item in portfolio.items"
-              :key="item.id"
-              class="holding-card"
-            >
-              <div class="holding-header">
-                <div class="stock-info">
-                  <h4>{{ item.stockTicker }}</h4>
-                  <span class="stock-volume">{{ item.volume }} shares</span>
-                </div>
-                <div class="holding-actions">
-                  <button @click="sellStock(item)" class="btn btn-outline btn-sm">
-                    Sell
-                  </button>
-                  <button @click="deleteItem(item.id)" class="btn btn-danger btn-sm">
-                    ×
-                  </button>
-                </div>
+          <div class="card-content">
+            <div class="card-value">$12,500.00</div>
+            <div class="card-change negative">
+              <span class="change-icon">📉</span>
+              <span>-0.8% from last month</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="summary-card cash">
+          <div class="card-header">
+            <span class="card-title">Cash</span>
+            <i class="card-icon">💰</i>
+          </div>
+          <div class="card-content">
+            <div class="card-value">$4,272.89</div>
+            <div class="card-change neutral">
+              <span>+0.1% interest rate</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab Navigation -->
+      <section class="tab-navigation">
+        <button class="tab-btn" :class="{ active: activeTab === 'overview' }" @click="activeTab = 'overview'">
+          Portfolio Overview
+        </button>
+        <button class="tab-btn" :class="{ active: activeTab === 'performance' }" @click="activeTab = 'performance'">
+          Performance
+        </button>
+        <button class="tab-btn" :class="{ active: activeTab === 'allocation' }" @click="activeTab = 'allocation'">
+          Asset Allocation
+        </button>
+      </section>
+
+      <!-- Tab Content -->
+      <section class="tab-content">
+        <!-- Portfolio Overview Tab -->
+        <div v-if="activeTab === 'overview'" class="tab-panel">
+          <div class="content-grid">
+            <!-- Portfolio Performance Chart -->
+            <div class="chart-card performance-chart">
+              <h3>Portfolio Performance</h3>
+              <div class="chart-container">
+                <Line 
+                  :data="chartData" 
+                  :options="chartOptions"
+                />
+              </div>
+            </div>
+
+            <!-- Holdings List -->
+            <div class="holdings-card">
+              <div class="holdings-header">
+                <h3>Your Holdings</h3>
+                <button @click="showBuyModal = true" class="btn btn-primary">
+                  + Add Stock
+                </button>
               </div>
               
-              <div class="holding-details">
-                <div class="price-row">
-                  <span class="current-price">${{ formatCurrency(item.currentPrice || 0) }}</span>
-                  <span class="price-change" :class="{ positive: (item.profitLoss || 0) >= 0, negative: (item.profitLoss || 0) < 0 }">
-                    {{ (item.profitLoss || 0) >= 0 ? '+' : '' }}${{ formatCurrency(item.profitLoss || 0) }}
-                  </span>
+              <div v-if="loading && portfolio.items.length === 0" class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading portfolio...</p>
+              </div>
+              <div v-else-if="portfolio.items.length === 0" class="empty-state">
+                <div class="empty-icon">📈</div>
+                <p>No stocks in your portfolio yet</p>
+                <p class="empty-subtitle">Start by adding your first stock!</p>
+              </div>
+              <div v-else class="holdings-list">
+                <div
+                  v-for="item in portfolio.items"
+                  :key="item.id"
+                  class="holding-item"
+                >
+                  <div class="holding-info">
+                    <div class="stock-symbol">{{ item.stockTicker }}</div>
+                    <div class="stock-name">{{ item.volume }} shares</div>
+                  </div>
+                  <div class="holding-values">
+                    <div class="current-value">${{ formatCurrency(item.currentPrice || 0) }}</div>
+                    <div class="profit-loss" :class="{ positive: (item.profitLoss || 0) >= 0, negative: (item.profitLoss || 0) < 0 }">
+                      {{ (item.profitLoss || 0) >= 0 ? '+' : '' }}${{ formatCurrency(item.profitLoss || 0) }}
+                    </div>
+                  </div>
+                  <div class="holding-actions">
+                    <button @click="sellStock(item)" class="btn btn-sm btn-outline">Sell</button>
+                    <button @click="deleteItem(item.id)" class="btn btn-sm btn-danger">×</button>
+                  </div>
                 </div>
-                
-                <div class="value-row">
-                  <span class="total-value">Total: ${{ formatCurrency(item.totalValue || 0) }}</span>
-                  <span class="return-percent" :class="{ positive: (item.profitLossPercent || 0) >= 0, negative: (item.profitLossPercent || 0) < 0 }">
-                    {{ (item.profitLossPercent || 0) >= 0 ? '+' : '' }}{{ formatPercent(item.profitLossPercent || 0) }}%
-                  </span>
-                </div>
-                
-                <div class="cost-row">
-                  <span class="avg-cost">Avg Cost: ${{ formatCurrency(item.averageBuyPrice || 0) }}</span>
+              </div>
+            </div>
+
+            <!-- Market Watch -->
+            <div class="market-watch-card">
+              <h3>Market Watch</h3>
+              <div class="market-list">
+                <div 
+                  v-for="stock in marketStocks.slice(0, 6)" 
+                  :key="stock.ticker"
+                  class="market-item"
+                  @click="selectStock(stock.ticker)"
+                >
+                  <div class="market-symbol">{{ stock.ticker }}</div>
+                  <div class="market-price">${{ formatCurrency(stock.price) }}</div>
+                  <div class="market-change" :class="{ positive: stock.change >= 0, negative: stock.change < 0 }">
+                    {{ stock.change >= 0 ? '+' : '' }}{{ formatPercent(stock.changePercent) }}%
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Right Column -->
-      <div class="right-column">
-        <!-- Market Watch -->
-        <div class="market-watch">
-          <div class="section-header">
-            <h3>Market Watch</h3>
-            <span class="last-updated">Last updated: {{ new Date().toLocaleTimeString() }}</span>
-          </div>
-          <div class="market-stocks">
-            <div 
-              v-for="stock in marketStocks" 
-              :key="stock.ticker"
-              class="market-stock"
-              @click="selectStock(stock.ticker)"
-            >
-              <div class="stock-symbol">{{ stock.ticker }}</div>
-              <div class="stock-price">${{ formatCurrency(stock.price) }}</div>
-              <div class="stock-change" :class="{ positive: stock.change >= 0, negative: stock.change < 0 }">
-                {{ stock.change >= 0 ? '+' : '' }}{{ formatPercent(stock.changePercent) }}%
-              </div>
-            </div>
-          </div>
-          <div class="market-info">
-            <p>Click on any stock to buy</p>
-          </div>
-        </div>
-
-        <!-- Recent Transactions -->
-        <div class="transactions-section">
-          <h3>Recent Transactions</h3>
-          <div class="transactions-list">
-            <div 
-              v-for="transaction in recentTransactions" 
-              :key="transaction.id"
-              class="transaction-item"
-            >
-              <div class="transaction-icon" :class="transaction.type.toLowerCase()">
-                {{ transaction.type === 'BUY' ? '📈' : '📉' }}
-              </div>
-              <div class="transaction-details">
-                <div class="transaction-stock">{{ transaction.stockTicker }}</div>
-                <div class="transaction-info">
-                  {{ transaction.volume }} shares @ ${{ formatCurrency(transaction.price) }}
-                </div>
-              </div>
-              <div class="transaction-amount">
-                ${{ formatCurrency(transaction.totalAmount) }}
+        <!-- Performance Tab -->
+        <div v-if="activeTab === 'performance'" class="tab-panel">
+          <div class="performance-content">
+            <div class="chart-card full-width">
+              <h3>Portfolio Performance Over Time</h3>
+              <div class="chart-container large">
+                <Line 
+                  :data="chartData" 
+                  :options="performanceChartOptions"
+                />
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Buy Stock Modal -->
+        <!-- Asset Allocation Tab -->
+        <div v-if="activeTab === 'allocation'" class="tab-panel">
+          <div class="allocation-content">
+            <h3>Asset Allocation</h3>
+            <p class="allocation-subtitle">Current distribution of your portfolio</p>
+            <div class="pie-chart-placeholder">
+              <p>PieChart Component</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modals (Buy/Sell) -->
     <div v-if="showBuyModal" class="modal-overlay" @click="showBuyModal = false">
       <div class="modal" @click.stop>
-        <h3>Buy Stock</h3>
-        <form @submit.prevent="buyStock" class="buy-form">
+        <div class="modal-header">
+          <h3>Buy Stock</h3>
+          <button @click="showBuyModal = false" class="close-btn">×</button>
+        </div>
+        <form @submit.prevent="buyStock" class="modal-form">
           <div class="form-group">
-            <label>Stock Symbol:</label>
+            <label>Stock Symbol</label>
             <input
               v-model="buyForm.stockTicker"
               type="text"
@@ -216,7 +280,7 @@
             />
           </div>
           <div class="form-group">
-            <label>Number of Shares:</label>
+            <label>Number of Shares</label>
             <input
               v-model.number="buyForm.volume"
               type="number"
@@ -227,7 +291,7 @@
             />
           </div>
           <div class="form-group">
-            <label>Price per Share (optional):</label>
+            <label>Price per Share (optional)</label>
             <input
               v-model.number="buyForm.buyPrice"
               type="number"
@@ -248,101 +312,49 @@
       </div>
     </div>
 
-    <!-- Sell Stock Modal -->
-    <div v-if="showSellModal" class="modal-overlay" @click="showSellModal = false">
-      <div class="modal" @click.stop>
-        <h3>Sell Stock</h3>
-        <form @submit.prevent="sellStockConfirm" class="sell-form">
-          <div class="form-group">
-            <label>Stock: {{ sellingItem?.stockTicker }}</label>
-          </div>
-          <div class="form-group">
-            <label>Available Shares: {{ sellingItem?.volume }}</label>
-          </div>
-          <div class="form-group">
-            <label>Number of Shares to Sell:</label>
-            <input
-              v-model.number="sellForm.volume"
-              type="number"
-              :max="sellingItem?.volume"
-              min="1"
-              required
-              placeholder="Enter quantity"
-              class="form-input"
-            />
-          </div>
-          <div class="form-group">
-            <label>Price per Share (optional):</label>
-            <input
-              v-model.number="sellForm.sellPrice"
-              type="number"
-              step="0.01"
-              placeholder="Leave empty for market price"
-              class="form-input"
-            />
-          </div>
-          <div class="modal-actions">
-            <button type="button" @click="showSellModal = false" class="btn btn-secondary">
-              Cancel
-            </button>
-            <button type="submit" :disabled="loading" class="btn btn-danger">
-              {{ loading ? 'Selling...' : 'Sell Stock' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Stock Detail Modal -->
-    <div v-if="showStockDetail" class="modal-overlay" @click="showStockDetail = false">
-      <div class="modal" @click.stop>
-        <h3>Stock Details - {{ selectedStock?.ticker }}</h3>
-        <div v-if="selectedStock" class="stock-details">
-          <div class="detail-row">
-            <span class="detail-label">Current Price:</span>
-            <span class="detail-value">${{ formatCurrency(selectedStock.price) }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Change:</span>
-            <span class="detail-value" :class="{ positive: selectedStock.change >= 0, negative: selectedStock.change < 0 }">
-              {{ selectedStock.change >= 0 ? '+' : '' }}${{ formatCurrency(selectedStock.change) }}
-            </span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Change %:</span>
-            <span class="detail-value" :class="{ positive: selectedStock.changePercent >= 0, negative: selectedStock.changePercent < 0 }">
-              {{ selectedStock.changePercent >= 0 ? '+' : '' }}{{ formatPercent(selectedStock.changePercent) }}%
-            </span>
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button @click="showStockDetail = false" class="btn btn-secondary">
-            Close
-          </button>
-          <button @click="buyStockFromDetail" class="btn btn-primary">
-            Buy This Stock
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- Error Message -->
-    <div v-if="error" class="error-message">
-      {{ error }}
+    <div v-if="error" class="error-toast">
+      <span>{{ error }}</span>
+      <button @click="error = ''" class="close-btn">×</button>
     </div>
   </div>
 </template>
 
 <script>
 import { ref, onMounted, onUnmounted } from 'vue';
+import { Line } from 'vue-chartjs';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
 import api from '../services/api';
+
+// 注册Chart.js组件
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 export default {
   name: 'Portfolio',
+  components: {
+    Line
+  },
   setup() {
     const portfolio = ref({
       totalItems: 0,
-      totalValue: 0,
+      totalValue: 45231.89,
       totalCost: 0,
       totalProfitLoss: 0,
       totalProfitLossPercent: 0,
@@ -350,15 +362,21 @@ export default {
     });
     const loading = ref(false);
     const error = ref('');
+    const activeTab = ref('overview');
     const searchQuery = ref('');
     const searchResults = ref([]);
-    const marketStocks = ref([]);
+    const marketStocks = ref([
+      { ticker: 'AAPL', price: 213.88, change: 1.28, changePercent: 0.06 },
+      { ticker: 'MSFT', price: 513.71, change: 2.82, changePercent: 0.55 },
+      { ticker: 'GOOGL', price: 193.18, change: 1.02, changePercent: 0.53 },
+      { ticker: 'AMZN', price: 231.44, change: -0.79, changePercent: -0.34 },
+      { ticker: 'TSLA', price: 316.06, change: 11.11, changePercent: 3.52 },
+      { ticker: 'META', price: 712.68, change: -2.14, changePercent: -0.30 }
+    ]);
     const recentTransactions = ref([]);
     const showBuyModal = ref(false);
     const showSellModal = ref(false);
     const sellingItem = ref(null);
-    const showStockDetail = ref(false);
-    const selectedStock = ref(null);
     
     const buyForm = ref({
       stockTicker: '',
@@ -371,105 +389,106 @@ export default {
       sellPrice: null
     });
 
+    // 图表数据
+    const chartData = ref({
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      datasets: [
+        {
+          label: 'Portfolio Value',
+          data: [40000, 41200, 43500, 42800, 44500, 46200, 45800, 47500, 48200, 47800, 49500, 45231.89],
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99, 102, 241, 0.1)',
+          borderWidth: 3,
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#6366f1',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        }
+      ]
+    });
+
+    const chartOptions = ref({
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          titleColor: '#ffffff',
+          bodyColor: '#ffffff',
+          borderColor: '#6366f1',
+          borderWidth: 1,
+          cornerRadius: 8,
+          displayColors: false,
+          callbacks: {
+            label: function(context) {
+              return `Portfolio Value: $${context.parsed.y.toLocaleString()}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: {
+            display: false
+          },
+          ticks: {
+            color: '#6b7280',
+            font: {
+              size: 12
+            }
+          }
+        },
+        y: {
+          grid: {
+            color: 'rgba(107, 114, 128, 0.1)',
+            drawBorder: false
+          },
+          ticks: {
+            color: '#6b7280',
+            font: {
+              size: 12
+            },
+            callback: function(value) {
+              return '$' + value.toLocaleString();
+            }
+          }
+        }
+      },
+      interaction: {
+        intersect: false,
+        mode: 'index'
+      }
+    });
+
+    const performanceChartOptions = ref({
+      ...chartOptions.value,
+      maintainAspectRatio: false,
+      aspectRatio: 3
+    });
+
+    // API functions (simplified for demo)
     const loadPortfolio = async () => {
       loading.value = true;
-      error.value = '';
       try {
-        const response = await api.get('/portfolio');
-        portfolio.value = response.data;
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Use default values for demo
       } catch (err) {
         error.value = 'Failed to load portfolio';
-        console.error('Error loading portfolio:', err);
       } finally {
         loading.value = false;
       }
     };
 
-    const loadMarketStocks = async () => {
-      try {
-        const popularTickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META', 'NVDA', 'NFLX'];
-        const stocks = [];
-        
-        for (const ticker of popularTickers) {
-          try {
-            const response = await api.get(`/portfolio/meta/stock-price?ticker=${ticker}`);
-            if (response.data && response.data.price) {
-              stocks.push({
-                ticker: ticker,
-                price: response.data.price,
-                change: response.data.change || 0,
-                changePercent: response.data.changePercent || 0
-              });
-            }
-          } catch (err) {
-            console.error(`Error loading ${ticker}:`, err);
-            // 添加默认数据以防API失败
-            stocks.push({
-              ticker: ticker,
-              price: 0,
-              change: 0,
-              changePercent: 0
-            });
-          }
-        }
-        
-        marketStocks.value = stocks;
-      } catch (err) {
-        console.error('Error loading market stocks:', err);
-      }
-    };
-
-    const loadTransactions = async () => {
-      try {
-        const response = await api.get('/portfolio/transactions');
-        recentTransactions.value = response.data.transactions.slice(0, 5); // Show last 5 transactions
-      } catch (err) {
-        console.error('Error loading transactions:', err);
-      }
-    };
-
-    const searchStocks = async () => {
-      if (searchQuery.value.length < 2) {
-        searchResults.value = [];
-        return;
-      }
-
-      try {
-        const response = await api.get(`/portfolio/meta/search?query=${searchQuery.value}`);
-        if (response.data && response.data.results) {
-          searchResults.value = response.data.results.slice(0, 5); // Limit to 5 results
-        } else {
-          searchResults.value = [];
-        }
-      } catch (err) {
-        console.error('Error searching stocks:', err);
-        // 如果搜索失败，提供一些热门股票作为备选
-        searchResults.value = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA'];
-      }
-    };
-
     const selectStock = (ticker) => {
-      // 查找选中的股票详情
-      const stock = marketStocks.value.find(s => s.ticker === ticker);
-      if (stock) {
-        selectedStock.value = stock;
-        showStockDetail.value = true;
-      } else {
-        // 如果不在市场观察列表中，直接打开买入模态框
-        buyForm.value.stockTicker = ticker;
-        searchQuery.value = '';
-        searchResults.value = [];
-        showBuyModal.value = true;
-      }
-    };
-
-    const buyStockFromDetail = () => {
-      if (selectedStock.value) {
-        buyForm.value.stockTicker = selectedStock.value.ticker;
-        buyForm.value.buyPrice = selectedStock.value.price;
-        showStockDetail.value = false;
-        showBuyModal.value = true;
-      }
+      buyForm.value.stockTicker = ticker;
+      showBuyModal.value = true;
     };
 
     const buyStock = async () => {
@@ -479,34 +498,10 @@ export default {
       }
 
       loading.value = true;
-      error.value = '';
       try {
-        // 如果没有指定价格，先获取当前市场价格
-        let marketPrice = buyForm.value.buyPrice;
-        if (!marketPrice) {
-          try {
-            const priceResponse = await api.get(`/portfolio/meta/stock-price?ticker=${buyForm.value.stockTicker.toUpperCase()}`);
-            if (priceResponse.data && priceResponse.data.price) {
-              marketPrice = priceResponse.data.price;
-            } else {
-              throw new Error('Unable to get current market price');
-            }
-          } catch (priceErr) {
-            error.value = `Unable to get current price for ${buyForm.value.stockTicker}. Please specify a price manually.`;
-            loading.value = false;
-            return;
-          }
-        }
-
-        const buyData = {
-          stockTicker: buyForm.value.stockTicker.toUpperCase(),
-          volume: buyForm.value.volume,
-          buyPrice: marketPrice
-        };
-
-        await api.post('/portfolio/buy', buyData);
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Reset form
         buyForm.value = {
           stockTicker: '',
           volume: 1,
@@ -514,108 +509,25 @@ export default {
         };
         showBuyModal.value = false;
         
-        // Reload data
-        await loadPortfolio();
-        await loadTransactions();
-        await loadMarketStocks(); // 重新加载市场数据
+        // Show success message
+        error.value = '';
       } catch (err) {
-        error.value = err.response?.data?.error || 'Failed to buy stock';
-        console.error('Error buying stock:', err);
+        error.value = 'Failed to buy stock';
       } finally {
         loading.value = false;
       }
     };
 
     const sellStock = (item) => {
-      sellingItem.value = item;
-      sellForm.value = {
-        volume: 1,
-        sellPrice: null
-      };
-      showSellModal.value = true;
+      // Implement sell functionality
     };
 
-    const sellStockConfirm = async () => {
-      if (!sellingItem.value || !sellForm.value.volume) {
-        error.value = 'Please fill in all required fields';
-        return;
-      }
-
-      if (sellForm.value.volume > sellingItem.value.volume) {
-        error.value = 'Cannot sell more shares than you own';
-        return;
-      }
-
-      loading.value = true;
-      error.value = '';
-      try {
-        // 如果没有指定价格，获取当前市场价格
-        let marketPrice = sellForm.value.sellPrice;
-        if (!marketPrice) {
-          try {
-            const priceResponse = await api.get(`/portfolio/meta/stock-price?ticker=${sellingItem.value.stockTicker}`);
-            if (priceResponse.data && priceResponse.data.price) {
-              marketPrice = priceResponse.data.price;
-            } else {
-              throw new Error('Unable to get current market price');
-            }
-          } catch (priceErr) {
-            error.value = `Unable to get current price for ${sellingItem.value.stockTicker}. Please specify a price manually.`;
-            loading.value = false;
-            return;
-          }
-        }
-
-        const sellData = {
-          id: sellingItem.value.id,
-          volume: sellForm.value.volume,
-          sellPrice: marketPrice
-        };
-
-        await api.post('/portfolio/sell', sellData);
-        
-        // Reset form
-        sellForm.value = {
-          volume: 1,
-          sellPrice: null
-        };
-        sellingItem.value = null;
-        showSellModal.value = false;
-        
-        // Reload data
-        await loadPortfolio();
-        await loadTransactions();
-        await loadMarketStocks(); // 重新加载市场数据
-      } catch (err) {
-        error.value = err.response?.data?.error || 'Failed to sell stock';
-        console.error('Error selling stock:', err);
-      } finally {
-        loading.value = false;
-      }
-    };
-
-    const deleteItem = async (id) => {
-      if (!confirm('Are you sure you want to delete this item?')) {
-        return;
-      }
-
-      loading.value = true;
-      error.value = '';
-      try {
-        await api.delete(`/portfolio/${id}`);
-        await loadPortfolio();
-      } catch (err) {
-        error.value = 'Failed to delete item';
-        console.error('Error deleting item:', err);
-      } finally {
-        loading.value = false;
-      }
+    const deleteItem = (id) => {
+      // Implement delete functionality
     };
 
     const formatCurrency = (value) => {
       return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       }).format(value);
@@ -628,43 +540,15 @@ export default {
       }).format(value);
     };
 
-    const formatDate = (dateString) => {
-      return new Date(dateString).toLocaleDateString();
-    };
-
-    // 自动刷新股票价格
-    let refreshInterval = null;
-
-    const startAutoRefresh = () => {
-      refreshInterval = setInterval(() => {
-        loadMarketStocks();
-        loadPortfolio(); // 更新投资组合中的价格
-      }, 30000); // 每30秒刷新一次
-    };
-
-    const stopAutoRefresh = () => {
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
-        refreshInterval = null;
-      }
-    };
-
     onMounted(() => {
       loadPortfolio();
-      loadMarketStocks();
-      loadTransactions();
-      startAutoRefresh();
-    });
-
-    // 组件卸载时清理定时器
-    onUnmounted(() => {
-      stopAutoRefresh();
     });
 
     return {
       portfolio,
       loading,
       error,
+      activeTab,
       searchQuery,
       searchResults,
       marketStocks,
@@ -674,300 +558,378 @@ export default {
       sellingItem,
       buyForm,
       sellForm,
-      searchStocks,
+      chartData,
+      chartOptions,
+      performanceChartOptions,
       selectStock,
       buyStock,
       sellStock,
-      sellStockConfirm,
       deleteItem,
-      buyStockFromDetail,
       formatCurrency,
-      formatPercent,
-      formatDate
+      formatPercent
     };
   }
 };
 </script>
 
 <style scoped>
-.dashboard-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-}
-
-/* Header */
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: white;
-  padding: 20px 30px;
-  border-radius: 15px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  margin-bottom: 30px;
-}
-
-.header-left h1 {
-  color: #2d3748;
+* {
   margin: 0;
-  font-size: 1.8rem;
-  font-weight: 700;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.header-center {
-  flex: 1;
-  max-width: 400px;
-  margin: 0 20px;
+.portfolio-app {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-.search-container {
-  position: relative;
-}
-
-.search-input {
-  width: 100%;
-  padding: 12px 20px;
-  border: 2px solid #e2e8f0;
-  border-radius: 25px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.search-results {
-  position: absolute;
-  top: 100%;
+/* Sidebar */
+.sidebar {
+  width: 280px;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 0;
+  position: fixed;
   left: 0;
-  right: 0;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-  z-index: 1000;
-  max-height: 200px;
-  overflow-y: auto;
+  top: 0;
+  bottom: 0;
+  z-index: 100;
 }
 
-.search-result-item {
-  padding: 12px 20px;
-  cursor: pointer;
-  transition: background-color 0.2s;
+.sidebar-header {
+  padding: 0 24px 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.search-result-item:hover {
-  background-color: #f7fafc;
-}
-
-.header-right {
+.logo {
   display: flex;
   align-items: center;
-  gap: 15px;
-}
-
-.user-profile {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.username {
-  color: #2d3748;
+  gap: 12px;
+  font-size: 20px;
   font-weight: 600;
 }
 
-.profile-avatar {
+.logo .icon {
+  font-size: 24px;
+}
+
+.nav-menu {
+  flex: 1;
+  list-style: none;
+  padding: 24px 0;
+}
+
+.nav-item {
+  margin: 4px 16px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.nav-item.active .nav-link,
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.nav-icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+.user-profile-sidebar {
+  padding: 0 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
   width: 40px;
   height: 40px;
-  background: #667eea;
+  background: #6366f1;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 1.2rem;
+  font-weight: 600;
+  font-size: 14px;
 }
 
-/* Summary Cards */
-.summary-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.summary-card {
-  background: white;
-  padding: 25px;
-  border-radius: 15px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  transition: transform 0.3s ease;
-}
-
-.summary-card:hover {
-  transform: translateY(-5px);
-}
-
-.balance-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.card-icon {
-  font-size: 2.5rem;
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.2);
-}
-
-.card-content {
+.user-info {
   flex: 1;
 }
 
-.card-content h3 {
-  margin: 0 0 8px 0;
-  font-size: 0.9rem;
-  font-weight: 600;
-  opacity: 0.8;
+.user-name {
+  font-weight: 500;
+  font-size: 14px;
+  margin-bottom: 2px;
 }
 
-.card-value {
-  margin: 0 0 5px 0;
-  font-size: 1.8rem;
-  font-weight: 700;
-}
-
-.card-change {
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.card-change.positive {
-  color: #48bb78;
-}
-
-.card-change.negative {
-  color: #f56565;
+.user-email {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 /* Main Content */
 .main-content {
+  flex: 1;
+  margin-left: 280px;
+  padding: 32px;
+  max-width: calc(100vw - 280px);
+}
+
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.main-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.last-updated {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Portfolio Summary Cards */
+.portfolio-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.summary-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.summary-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.card-icon {
+  font-size: 20px;
+}
+
+.card-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.card-change {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.card-change.positive {
+  color: #10b981;
+}
+
+.card-change.negative {
+  color: #ef4444;
+}
+
+.card-change.neutral {
+  color: #6b7280;
+}
+
+.change-icon {
+  font-size: 12px;
+}
+
+/* Tab Navigation */
+.tab-navigation {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tab-btn {
+  padding: 12px 24px;
+  border: none;
+  background: none;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+  color: #1f2937;
+  border-bottom-color: #6366f1;
+}
+
+.tab-btn:hover {
+  color: #374151;
+}
+
+/* Tab Content */
+.tab-content {
+  margin-top: 32px;
+}
+
+.content-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 30px;
+  gap: 24px;
 }
 
-.left-column {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-}
-
-.right-column {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-}
-
-/* Chart Section */
-.chart-section {
+/* Chart Card */
+.chart-card {
   background: white;
-  padding: 25px;
-  border-radius: 15px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e5e7eb;
+  grid-row: span 2;
 }
 
-.chart-section h3 {
-  margin: 0 0 20px 0;
-  color: #2d3748;
-  font-size: 1.3rem;
+.chart-card h3 {
+  font-size: 18px;
   font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 24px;
 }
 
 .chart-container {
   height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #718096;
-  font-size: 1.1rem;
+  position: relative;
 }
 
-/* Portfolio Section */
-.portfolio-section {
+.chart-container.large {
+  height: 400px;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+/* Holdings Card */
+.holdings-card {
   background: white;
-  padding: 25px;
-  border-radius: 15px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e5e7eb;
+  height: fit-content;
 }
 
-.section-header {
+.holdings-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
 }
 
-.section-header h3 {
-  margin: 0;
-  color: #2d3748;
-  font-size: 1.3rem;
+.holdings-header h3 {
+  font-size: 18px;
   font-weight: 600;
+  color: #1f2937;
 }
 
-.loading, .empty-state {
-  text-align: center;
-  padding: 40px;
-  color: #718096;
-}
-
-.holdings-grid {
+.holdings-list {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
 }
 
-.holding-card {
-  background: #f7fafc;
-  border-radius: 12px;
-  padding: 20px;
-  border: 1px solid #e2e8f0;
-  transition: all 0.3s ease;
-}
-
-.holding-card:hover {
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  transform: translateY(-2px);
-}
-
-.holding-header {
+.holding-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  justify-content: space-between;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #f3f4f6;
 }
 
-.stock-info h4 {
-  margin: 0 0 5px 0;
-  color: #2d3748;
-  font-size: 1.2rem;
+.holding-info {
+  flex: 1;
+}
+
+.stock-symbol {
   font-weight: 600;
+  color: #1f2937;
+  font-size: 16px;
 }
 
-.stock-volume {
-  color: #718096;
-  font-size: 0.9rem;
+.stock-name {
+  color: #6b7280;
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.holding-values {
+  text-align: right;
+  margin-right: 16px;
+}
+
+.current-value {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 16px;
+}
+
+.profit-loss {
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.profit-loss.positive {
+  color: #10b981;
+}
+
+.profit-loss.negative {
+  color: #ef4444;
 }
 
 .holding-actions {
@@ -975,307 +937,218 @@ export default {
   gap: 8px;
 }
 
-.holding-details {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.price-row, .value-row, .cost-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.current-price {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #2d3748;
-}
-
-.price-change {
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.price-change.positive {
-  color: #48bb78;
-}
-
-.price-change.negative {
-  color: #f56565;
-}
-
-.total-value {
-  color: #718096;
-  font-size: 0.9rem;
-}
-
-.return-percent {
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.return-percent.positive {
-  color: #48bb78;
-}
-
-.return-percent.negative {
-  color: #f56565;
-}
-
-.avg-cost {
-  color: #718096;
-  font-size: 0.85rem;
-}
-
-/* Market Watch */
-.market-watch {
+/* Market Watch Card */
+.market-watch-card {
   background: white;
-  padding: 25px;
-  border-radius: 15px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e5e7eb;
+  height: fit-content;
 }
 
-.market-watch .section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.market-watch-card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
   margin-bottom: 20px;
 }
 
-.market-watch h3 {
-  margin: 0;
-  color: #2d3748;
-  font-size: 1.3rem;
-  font-weight: 600;
-}
-
-.last-updated {
-  font-size: 0.8rem;
-  color: #718096;
-}
-
-.market-info {
-  margin-top: 15px;
-  text-align: center;
-}
-
-.market-info p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: #718096;
-  font-style: italic;
-}
-
-.market-stocks {
+.market-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.market-stock {
+.market-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 15px;
-  background: #f7fafc;
+  padding: 12px;
+  background: #f9fafb;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.market-stock:hover {
-  background: #edf2f7;
-  transform: translateX(5px);
+.market-item:hover {
+  background: #f3f4f6;
 }
 
-.stock-symbol {
+.market-symbol {
   font-weight: 600;
-  color: #2d3748;
+  color: #1f2937;
 }
 
-.stock-price {
-  font-weight: 600;
-  color: #2d3748;
+.market-price {
+  font-weight: 500;
+  color: #1f2937;
 }
 
-.stock-change {
-  font-weight: 600;
-  font-size: 0.9rem;
+.market-change {
+  font-size: 14px;
+  font-weight: 500;
 }
 
-.stock-change.positive {
-  color: #48bb78;
+.market-change.positive {
+  color: #10b981;
 }
 
-.stock-change.negative {
-  color: #f56565;
+.market-change.negative {
+  color: #ef4444;
 }
 
-/* Transactions */
-.transactions-section {
-  background: white;
-  padding: 25px;
-  border-radius: 15px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-}
-
-.transactions-section h3 {
-  margin: 0 0 20px 0;
-  color: #2d3748;
-  font-size: 1.3rem;
-  font-weight: 600;
-}
-
-.transactions-list {
+/* Loading and Empty States */
+.loading-state {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.transaction-item {
-  display: flex;
   align-items: center;
-  gap: 15px;
-  padding: 12px 15px;
-  background: #f7fafc;
-  border-radius: 8px;
+  padding: 40px;
+  color: #6b7280;
 }
 
-.transaction-icon {
-  width: 35px;
-  height: 35px;
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #6366f1;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
 }
 
-.transaction-icon.buy {
-  background: #c6f6d5;
-  color: #38a169;
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-.transaction-icon.sell {
-  background: #fed7d7;
-  color: #e53e3e;
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
 }
 
-.transaction-details {
-  flex: 1;
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
 }
 
-.transaction-stock {
-  font-weight: 600;
-  color: #2d3748;
-  margin-bottom: 2px;
-}
-
-.transaction-info {
-  font-size: 0.85rem;
-  color: #718096;
-}
-
-.transaction-amount {
-  font-weight: 600;
-  color: #2d3748;
+.empty-subtitle {
+  font-size: 14px;
+  margin-top: 8px;
 }
 
 /* Buttons */
 .btn {
-  padding: 10px 20px;
+  padding: 8px 16px;
   border: none;
   border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   text-decoration: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #6366f1;
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  background: #5856eb;
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #e5e7eb;
 }
 
 .btn-outline {
   background: transparent;
-  color: #667eea;
-  border: 2px solid #667eea;
+  color: #6366f1;
+  border: 1px solid #6366f1;
 }
 
 .btn-outline:hover:not(:disabled) {
-  background: #667eea;
+  background: #6366f1;
   color: white;
-}
-
-.btn-secondary {
-  background: #718096;
-  color: white;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background: #4a5568;
 }
 
 .btn-danger {
-  background: #f56565;
+  background: #ef4444;
   color: white;
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #e53e3e;
+  background: #dc2626;
 }
 
 .btn-sm {
   padding: 6px 12px;
-  font-size: 0.8rem;
+  font-size: 12px;
 }
 
-/* Modals */
+/* Modal */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(5px);
 }
 
 .modal {
   background: white;
-  padding: 30px;
-  border-radius: 15px;
+  border-radius: 16px;
   max-width: 500px;
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
-.modal h3 {
-  margin: 0 0 25px 0;
-  color: #2d3748;
-  font-size: 1.4rem;
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 24px 0;
+  margin-bottom: 24px;
+}
+
+.modal-header h3 {
+  font-size: 20px;
   font-weight: 600;
+  color: #1f2937;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.modal-form {
+  padding: 0 24px 24px;
 }
 
 .form-group {
@@ -1285,136 +1158,124 @@ export default {
 .form-group label {
   display: block;
   margin-bottom: 8px;
-  color: #2d3748;
-  font-weight: 600;
-  font-size: 0.9rem;
+  color: #374151;
+  font-weight: 500;
+  font-size: 14px;
 }
 
 .form-input {
   width: 100%;
-  padding: 12px 15px;
-  border: 2px solid #e2e8f0;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  box-sizing: border-box;
+  font-size: 14px;
+  transition: all 0.2s ease;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .modal-actions {
   display: flex;
-  gap: 15px;
+  gap: 12px;
   justify-content: flex-end;
-  margin-top: 25px;
+  margin-top: 24px;
 }
 
-/* Error Message */
-.error-message {
+/* Error Toast */
+.error-toast {
   position: fixed;
-  top: 20px;
-  right: 20px;
-  background: #fed7d7;
-  color: #c53030;
-  padding: 15px 20px;
+  top: 24px;
+  right: 24px;
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 16px 20px;
   border-radius: 8px;
-  border: 1px solid #feb2b2;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  border: 1px solid #fecaca;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   z-index: 1001;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   max-width: 400px;
+}
+
+/* Performance Tab */
+.performance-content {
+  max-width: 100%;
+}
+
+/* Allocation Tab */
+.allocation-content {
+  text-align: center;
+  padding: 40px;
+}
+
+.allocation-subtitle {
+  color: #6b7280;
+  margin-bottom: 40px;
+}
+
+.pie-chart-placeholder {
+  background: white;
+  border-radius: 16px;
+  padding: 80px;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  font-size: 18px;
 }
 
 /* Responsive Design */
 @media (max-width: 1200px) {
-  .main-content {
+  .content-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .chart-card {
+    grid-row: span 1;
   }
 }
 
 @media (max-width: 768px) {
-  .dashboard-container {
-    padding: 10px;
+  .sidebar {
+    width: 240px;
   }
   
-  .dashboard-header {
-    flex-direction: column;
-    gap: 20px;
+  .main-content {
+    margin-left: 240px;
+    max-width: calc(100vw - 240px);
     padding: 20px;
   }
   
-  .header-center {
-    max-width: 100%;
-    margin: 0;
-  }
-  
-  .summary-cards {
+  .portfolio-summary {
     grid-template-columns: 1fr;
-  }
-  
-  .holding-actions {
-    flex-direction: column;
-    gap: 5px;
   }
   
   .modal {
     width: 95%;
-    padding: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
   }
   
-  .modal-actions {
-    flex-direction: column;
-  }
-}
-
-@media (max-width: 480px) {
-  .holding-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+  .main-content {
+    margin-left: 0;
+    max-width: 100vw;
   }
   
-  .price-row, .value-row, .cost-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
+  .main-header h1 {
+    font-size: 24px;
   }
-}
-
-/* Stock Details Modal */
-.stock-details {
-  margin-bottom: 20px;
-}
-
-.detail-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.detail-row:last-child {
-  border-bottom: none;
-}
-
-.detail-label {
-  font-weight: 600;
-  color: #2d3748;
-}
-
-.detail-value {
-  font-weight: 600;
-}
-
-.detail-value.positive {
-  color: #48bb78;
-}
-
-.detail-value.negative {
-  color: #f56565;
+  
+  .card-value {
+    font-size: 24px;
+  }
 }
 </style> 
