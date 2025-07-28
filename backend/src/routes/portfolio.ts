@@ -1,207 +1,224 @@
 import { Router, Request, Response } from 'express';
 import { Database } from '../models/Database';
 import { FinancialDataService } from '../services/FinancialDataService';
-import { CreatePortfolioItemRequest, UpdatePortfolioItemRequest, PortfolioSummary, BuyRequest, SellRequest } from '../models/Portfolio';
 
 const router = Router();
 const db = new Database();
 const financialService = new FinancialDataService();
 
-// GET /api/portfolio - Get all portfolio items
+// Default user ID for demo purposes
+const DEFAULT_USER_ID = 1;
+
+// GET /api/portfolio - Get portfolio summary
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const items = await db.getAllPortfolioItems();
+    const userId = parseInt(req.query.userId as string) || DEFAULT_USER_ID;
     
-    // Update prices for all items
-    const updatedItems = await Promise.all(
-      items.map(async (item) => {
-        const priceData = await financialService.getStockPrice(item.stockTicker);
-        if (priceData) {
-          await db.updateItemPrice(item.id, priceData.price);
-          return {
-            ...item,
-            currentPrice: priceData.price,
-            totalValue: item.volume * priceData.price
-          };
-        }
-        return item;
-      })
-    );
+    // Get user info
+    const user = await db.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
-    const totalCost = updatedItems.reduce((sum, item) => sum + (item.totalCost || 0), 0);
-    const totalProfitLoss = updatedItems.reduce((sum, item) => sum + (item.profitLoss || 0), 0);
-    const totalProfitLossPercent = totalCost > 0 ? (totalProfitLoss / totalCost) * 100 : 0;
-
-    const summary: PortfolioSummary = {
-      totalItems: updatedItems.length,
-      totalValue: updatedItems.reduce((sum, item) => sum + (item.totalValue || 0), 0),
-      totalCost,
-      totalProfitLoss,
-      totalProfitLossPercent,
-      items: updatedItems
-    };
-
-    res.json(summary);
+    // Get portfolio summary
+    const summary = await db.getPortfolioSummary(userId);
+    
+    res.json({
+      totalItems: summary.totalHoldings,
+      totalValue: summary.totalValue,
+      totalCost: summary.totalCost,
+      totalProfitLoss: summary.totalProfitLoss,
+      totalProfitLossPercent: summary.totalCost > 0 ? (summary.totalProfitLoss / summary.totalCost) * 100 : 0,
+      cash: summary.cash,
+      netWorth: summary.netWorth,
+      items: [] // Will be populated separately
+    });
   } catch (error) {
     console.error('Error fetching portfolio:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// GET /api/portfolio/:id - Get specific portfolio item
-router.get('/:id', async (req: Request, res: Response) => {
+// GET /api/portfolio/holdings - Get user holdings
+router.get('/holdings', async (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ error: 'Invalid ID format' });
-    }
-
-    const item = await db.getPortfolioItem(id);
-    if (!item) {
-      return res.status(404).json({ error: 'Portfolio item not found' });
-    }
-
-    // Update price
-    const priceData = await financialService.getStockPrice(item.stockTicker);
-    if (priceData) {
-      await db.updateItemPrice(item.id, priceData.price);
-      item.currentPrice = priceData.price;
-      item.totalValue = item.volume * priceData.price;
-    }
-
-    res.json(item);
-  } catch (error) {
-    console.error('Error fetching portfolio item:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// POST /api/portfolio - Create new portfolio item
-router.post('/', async (req: Request, res: Response) => {
-  try {
-    const { stockTicker, volume }: CreatePortfolioItemRequest = req.body;
-
-    if (!stockTicker || !volume || volume <= 0) {
-      return res.status(400).json({ 
-        error: 'Stock ticker and positive volume are required' 
-      });
-    }
-
-    // Validate that we can get price data for this ticker
-    const priceData = await financialService.getStockPrice(stockTicker);
-    if (!priceData) {
-      return res.status(400).json({ 
-        error: `Price data not available for ticker: ${stockTicker}. Try popular stocks like AAPL, MSFT, GOOGL, etc.` 
-      });
-    }
-
-    const newItem = await db.createPortfolioItem({ stockTicker: stockTicker.toUpperCase(), volume });
+    const userId = parseInt(req.query.userId as string) || DEFAULT_USER_ID;
     
-    // Update with current price
-    await db.updateItemPrice(newItem.id, priceData.price);
-    newItem.currentPrice = priceData.price;
-    newItem.totalValue = newItem.volume * priceData.price;
+    const holdings = await db.getHoldings(userId);
+    
+    // Update prices for all holdings
+    const updatedHoldings = await Promise.all(
+      holdings.map(async (holding) => {
+        const priceData = await financialService.getStockPrice(holding.ticker);
+        if (priceData) {
+          return {
+            ...holding,
+            currentPrice: priceData.price,
+            totalValue: holding.quantity * priceData.price,
+            profitLoss: (priceData.price - holding.buyPrice) * holding.quantity,
+            profitLossPercent: ((priceData.price - holding.buyPrice) / holding.buyPrice) * 100
+          };
+        }
+        return {
+          ...holding,
+          currentPrice: holding.buyPrice,
+          totalValue: holding.quantity * holding.buyPrice,
+          profitLoss: 0,
+          profitLossPercent: 0
+        };
+      })
+    );
 
-    res.status(201).json(newItem);
+    res.json({ holdings: updatedHoldings });
   } catch (error) {
-    console.error('Error creating portfolio item:', error);
+    console.error('Error fetching holdings:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// PUT /api/portfolio/:id - Update portfolio item
-router.put('/:id', async (req: Request, res: Response) => {
+// GET /api/portfolio/transactions - Get transaction history
+router.get('/transactions', async (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ error: 'Invalid ID format' });
+    const userId = parseInt(req.query.userId as string) || DEFAULT_USER_ID;
+    const limit = parseInt(req.query.limit as string) || 50;
+    
+    const transactions = await db.getTransactions(userId, limit);
+    res.json({ transactions });
+  } catch (error) {
+    console.error('Error fetching transactions:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/portfolio/buy - Buy stocks/funds
+router.post('/buy', async (req: Request, res: Response) => {
+  try {
+    const { ticker, quantity, price, type = 'stock' }: {
+      ticker: string;
+      quantity: number;
+      price?: number;
+      type?: 'stock' | 'fund';
+    } = req.body;
+
+    const userId = parseInt(req.query.userId as string) || DEFAULT_USER_ID;
+
+    if (!ticker || !quantity || quantity <= 0) {
+      return res.status(400).json({ 
+        error: 'Ticker and positive quantity are required' 
+      });
     }
 
-    const updates: UpdatePortfolioItemRequest = req.body;
-
-    if (updates.volume !== undefined && updates.volume <= 0) {
-      return res.status(400).json({ error: 'Volume must be positive' });
-    }
-
-    // If stockTicker is being updated, validate it
-    if (updates.stockTicker) {
-      const priceData = await financialService.getStockPrice(updates.stockTicker);
+    // Get current market price if not provided
+    let marketPrice = price;
+    if (!marketPrice) {
+      const priceData = await financialService.getStockPrice(ticker);
       if (!priceData) {
         return res.status(400).json({ 
-          error: `Price data not available for ticker: ${updates.stockTicker}. Try popular stocks like AAPL, MSFT, GOOGL, etc.` 
+          error: `Price data not available for ticker: ${ticker}` 
         });
       }
-      updates.stockTicker = updates.stockTicker.toUpperCase();
+      marketPrice = priceData.price;
     }
 
-    const updatedItem = await db.updatePortfolioItem(id, updates);
-    if (!updatedItem) {
-      return res.status(404).json({ error: 'Portfolio item not found' });
+    const result = await db.buyAsset(userId, type, ticker.toUpperCase(), quantity, marketPrice);
+
+    if (!result.success) {
+      return res.status(400).json({ error: 'Failed to buy asset' });
     }
 
-    // Update price
-    const priceData = await financialService.getStockPrice(updatedItem.stockTicker);
-    if (priceData) {
-      await db.updateItemPrice(updatedItem.id, priceData.price);
-      updatedItem.currentPrice = priceData.price;
-      updatedItem.totalValue = updatedItem.volume * priceData.price;
-    }
-
-    res.json(updatedItem);
+    res.status(201).json({
+      message: `Successfully bought ${quantity} ${type === 'fund' ? 'units' : 'shares'} of ${ticker.toUpperCase()} at $${marketPrice}`,
+      holding: result.holding
+    });
   } catch (error) {
-    console.error('Error updating portfolio item:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error buying asset:', error);
+    if (error instanceof Error) {
+      if (error.message.includes('Insufficient cash')) {
+        res.status(400).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Internal server error' });
+      }
+    } else {
+      res.status(500).json({ error: 'Internal server error' });
+    }
   }
 });
 
-// DELETE /api/portfolio/:id - Delete portfolio item
-router.delete('/:id', async (req: Request, res: Response) => {
+// POST /api/portfolio/sell - Sell stocks/funds
+router.post('/sell', async (req: Request, res: Response) => {
+  try {
+    const { ticker, quantity, price, type = 'stock' }: {
+      ticker: string;
+      quantity: number;
+      price?: number;
+      type?: 'stock' | 'fund';
+    } = req.body;
+
+    const userId = parseInt(req.query.userId as string) || DEFAULT_USER_ID;
+
+    if (!ticker || !quantity || quantity <= 0) {
+      return res.status(400).json({ 
+        error: 'Ticker and positive quantity are required' 
+      });
+    }
+
+    // Get current market price if not provided
+    let marketPrice = price;
+    if (!marketPrice) {
+      const priceData = await financialService.getStockPrice(ticker);
+      if (!priceData) {
+        return res.status(400).json({ 
+          error: `Price data not available for ticker: ${ticker}` 
+        });
+      }
+      marketPrice = priceData.price;
+    }
+
+    const result = await db.sellAsset(userId, type, ticker.toUpperCase(), quantity, marketPrice);
+
+    if (!result.success) {
+      return res.status(400).json({ error: 'Failed to sell asset' });
+    }
+
+    res.json({
+      message: `Successfully sold ${quantity} ${type === 'fund' ? 'units' : 'shares'} of ${ticker.toUpperCase()} at $${marketPrice}`,
+      remainingQuantity: result.remainingQuantity
+    });
+  } catch (error) {
+    console.error('Error selling asset:', error);
+    if (error instanceof Error) {
+      if (error.message.includes('Insufficient quantity') || error.message.includes('Holding not found')) {
+        res.status(400).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Internal server error' });
+      }
+    } else {
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+});
+
+// DELETE /api/portfolio/holdings/:id - Delete holding
+router.delete('/holdings/:id', async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
       return res.status(400).json({ error: 'Invalid ID format' });
     }
 
-    const deleted = await db.deletePortfolioItem(id);
+    const deleted = await db.deleteHolding(id);
     if (!deleted) {
-      return res.status(404).json({ error: 'Portfolio item not found' });
+      return res.status(404).json({ error: 'Holding not found' });
     }
 
     res.status(204).send();
   } catch (error) {
-    console.error('Error deleting portfolio item:', error);
+    console.error('Error deleting holding:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// GET /api/portfolio/popular-tickers - Get popular stock tickers
-router.get('/meta/popular-tickers', async (req: Request, res: Response) => {
-  try {
-    const tickers = financialService.getPopularTickers();
-    res.json({ tickers });
-  } catch (error) {
-    console.error('Error fetching popular tickers:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// GET /api/portfolio/search-stocks - Search for stocks
-router.get('/meta/search', async (req: Request, res: Response) => {
-  try {
-    const { query } = req.query;
-    if (!query || typeof query !== 'string') {
-      return res.status(400).json({ error: 'Query parameter is required' });
-    }
-    
-    const results = await financialService.searchStocks(query);
-    res.json({ results });
-  } catch (error) {
-    console.error('Error searching stocks:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// GET /api/portfolio/stock-price - Get stock price
+// GET /api/portfolio/meta/stock-price - Get stock price
 router.get('/meta/stock-price', async (req: Request, res: Response) => {
   try {
     const { ticker } = req.query;
@@ -221,108 +238,63 @@ router.get('/meta/stock-price', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/portfolio/buy - Buy stocks
-router.post('/buy', async (req: Request, res: Response) => {
+// GET /api/portfolio/meta/search - Search for stocks
+router.get('/meta/search', async (req: Request, res: Response) => {
   try {
-    const { stockTicker, volume, buyPrice }: BuyRequest = req.body;
-
-    if (!stockTicker || !volume || volume <= 0) {
-      return res.status(400).json({ 
-        error: 'Stock ticker and positive volume are required' 
-      });
+    const { query } = req.query;
+    if (!query || typeof query !== 'string') {
+      return res.status(400).json({ error: 'Query parameter is required' });
     }
-
-    // Get current market price if not provided
-    let marketPrice = buyPrice;
-    if (!marketPrice) {
-      const priceData = await financialService.getStockPrice(stockTicker);
-      if (!priceData) {
-        return res.status(400).json({ 
-          error: `Price data not available for ticker: ${stockTicker}` 
-        });
-      }
-      marketPrice = priceData.price;
-    }
-
-    const boughtItem = await db.buyStock({
-      stockTicker: stockTicker.toUpperCase(),
-      volume,
-      buyPrice: marketPrice
-    });
-
-    // Update with current price and profit/loss
-    await db.updateProfitLoss(boughtItem.id, marketPrice);
-    const updatedItem = await db.getPortfolioItem(boughtItem.id);
-
-    res.status(201).json({
-      message: `Successfully bought ${volume} shares of ${stockTicker.toUpperCase()} at $${marketPrice}`,
-      item: updatedItem
-    });
+    
+    const results = await financialService.searchStocks(query);
+    res.json({ results });
   } catch (error) {
-    console.error('Error buying stock:', error);
+    console.error('Error searching stocks:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// POST /api/portfolio/sell - Sell stocks
-router.post('/sell', async (req: Request, res: Response) => {
+// GET /api/portfolio/meta/popular-tickers - Get popular stock tickers
+router.get('/meta/popular-tickers', async (req: Request, res: Response) => {
   try {
-    const { id, volume, sellPrice }: SellRequest = req.body;
-
-    if (!id || !volume || volume <= 0) {
-      return res.status(400).json({ 
-        error: 'Portfolio item ID and positive volume are required' 
-      });
-    }
-
-    // Get current market price if not provided
-    let marketPrice = sellPrice;
-    if (!marketPrice) {
-      const item = await db.getPortfolioItem(id);
-      if (!item) {
-        return res.status(404).json({ error: 'Portfolio item not found' });
-      }
-      
-      const priceData = await financialService.getStockPrice(item.stockTicker);
-      if (!priceData) {
-        return res.status(400).json({ 
-          error: `Price data not available for ticker: ${item.stockTicker}` 
-        });
-      }
-      marketPrice = priceData.price;
-    }
-
-    const result = await db.sellStock({
-      id,
-      volume,
-      sellPrice: marketPrice
-    });
-
-    res.json({
-      message: `Successfully sold ${volume} shares at $${marketPrice}`,
-      soldAmount: result.soldAmount,
-      remainingVolume: result.remainingVolume
-    });
+    const tickers = financialService.getPopularTickers();
+    res.json({ tickers });
   } catch (error) {
-    console.error('Error selling stock:', error);
-    if (error instanceof Error && error.message.includes('Insufficient shares')) {
-      res.status(400).json({ error: error.message });
-    } else {
-      res.status(500).json({ error: 'Internal server error' });
-    }
+    console.error('Error fetching popular tickers:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// GET /api/portfolio/transactions - Get transaction history
-router.get('/transactions', async (req: Request, res: Response) => {
+// GET /api/portfolio/user - Get user info
+router.get('/user', async (req: Request, res: Response) => {
   try {
-    const { itemId } = req.query;
-    const transactions = await db.getTransactionHistory(
-      itemId ? parseInt(itemId as string) : undefined
-    );
-    res.json({ transactions });
+    const userId = parseInt(req.query.userId as string) || DEFAULT_USER_ID;
+    
+    const user = await db.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(user);
   } catch (error) {
-    console.error('Error fetching transactions:', error);
+    console.error('Error fetching user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/portfolio/user - Create user
+router.post('/user', async (req: Request, res: Response) => {
+  try {
+    const { username, cash = 0 }: { username: string; cash?: number } = req.body;
+
+    if (!username) {
+      return res.status(400).json({ error: 'Username is required' });
+    }
+
+    const user = await db.createUser(username, cash);
+    res.status(201).json(user);
+  } catch (error) {
+    console.error('Error creating user:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
