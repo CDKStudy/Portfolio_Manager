@@ -1,0 +1,27 @@
+# ignore node_modules
+node_modules/
+
+# ignore build output directories
+dist/
+build/
+
+# ignore environment variables
+.env
+
+# ignore log files
+*.log
+
+# ignore system files
+.DS_Store
+Thumbs.db
+
+# ignore IDE configurations
+.vscode/
+.idea/
+
+# ignore TypeScript build results
+*.tsbuildinfo
+
+# ignore frontend development temporary files
+*.local
+*.cache/

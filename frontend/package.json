@@ -1,0 +1,28 @@
+{
+  "name": "portfolio-manager-frontend",
+  "version": "1.0.0",
+  "description": "Portfolio Manager Vue.js Frontend",
+  "main": "src/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "serve": "vite preview"
+  },
+  "keywords": ["portfolio", "finance", "vue"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "vue": "^3.3.4",
+    "axios": "^1.6.0",
+    "vue-router": "^4.2.5",
+    "chart.js": "^4.4.0",
+    "vue-chartjs": "^5.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.4.0",
+    "vite": "^4.4.9",
+    "typescript": "^5.2.2",
+    "@vue/tsconfig": "^0.4.0"
+  }
+} 
