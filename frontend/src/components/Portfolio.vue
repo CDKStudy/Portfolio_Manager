@@ -82,7 +82,11 @@
         <div class="chart-section">
           <h3>Portfolio Performance</h3>
           <div class="chart-container">
-            <canvas ref="performanceChart"></canvas>
+            <Line 
+              :data="chartData" 
+              :options="chartOptions"
+              :height="300"
+            />
           </div>
         </div>
 
@@ -335,10 +339,35 @@
 
 <script>
 import { ref, onMounted, onUnmounted } from 'vue';
+import { Line } from 'vue-chartjs';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
 import api from '../services/api';
+
+// 注册Chart.js组件
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 export default {
   name: 'Portfolio',
+  components: {
+    Line
+  },
   setup() {
     const portfolio = ref({
       totalItems: 0,
@@ -369,6 +398,83 @@ export default {
     const sellForm = ref({
       volume: 1,
       sellPrice: null
+    });
+
+    // 图表数据 - 静态数据
+    const chartData = ref({
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      datasets: [
+        {
+          label: 'Portfolio Value',
+          data: [10000, 10500, 11200, 10800, 11500, 12200, 11800, 12500, 13200, 12800, 13500, 14200],
+          borderColor: '#667eea',
+          backgroundColor: 'rgba(102, 126, 234, 0.1)',
+          borderWidth: 3,
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#667eea',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          pointRadius: 6,
+          pointHoverRadius: 8
+        }
+      ]
+    });
+
+    const chartOptions = ref({
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          titleColor: '#ffffff',
+          bodyColor: '#ffffff',
+          borderColor: '#667eea',
+          borderWidth: 1,
+          cornerRadius: 8,
+          displayColors: false,
+          callbacks: {
+            label: function(context) {
+              return `Portfolio Value: $${context.parsed.y.toLocaleString()}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: {
+            display: false
+          },
+          ticks: {
+            color: '#718096',
+            font: {
+              size: 12
+            }
+          }
+        },
+        y: {
+          grid: {
+            color: 'rgba(113, 128, 150, 0.1)',
+            drawBorder: false
+          },
+          ticks: {
+            color: '#718096',
+            font: {
+              size: 12
+            },
+            callback: function(value) {
+              return '$' + value.toLocaleString();
+            }
+          }
+        }
+      },
+      interaction: {
+        intersect: false,
+        mode: 'index'
+      }
     });
 
     const loadPortfolio = async () => {
@@ -674,6 +780,8 @@ export default {
       sellingItem,
       buyForm,
       sellForm,
+      chartData,
+      chartOptions,
       searchStocks,
       selectStock,
       buyStock,
@@ -897,11 +1005,8 @@ export default {
 
 .chart-container {
   height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #718096;
-  font-size: 1.1rem;
+  position: relative;
+  width: 100%;
 }
 
 /* Portfolio Section */
