@@ -25,20 +25,43 @@ async function testConnection() {
     const [rows] = await connection.execute('SELECT 1 as test');
     console.log('✅ Query test successful:', rows[0]);
     
-    // Check if our table exists
-    const [tables] = await connection.execute('SHOW TABLES LIKE "portfolio_items"');
-    if (tables.length > 0) {
-      console.log('✅ portfolio_items table exists');
+    // Check if our tables exist
+    const [usersTable] = await connection.execute('SHOW TABLES LIKE "users"');
+    const [holdingsTable] = await connection.execute('SHOW TABLES LIKE "holdings"');
+    const [transactionsTable] = await connection.execute('SHOW TABLES LIKE "transactions"');
+    
+    if (usersTable.length > 0) {
+      console.log('✅ users table exists');
       
       // Show table structure
-      const [columns] = await connection.execute('DESCRIBE portfolio_items');
-      console.log('📋 Table structure:', columns.map(col => `${col.Field} (${col.Type})`).join(', '));
+      const [columns] = await connection.execute('DESCRIBE users');
+      console.log('📋 Users table structure:', columns.map(col => `${col.Field} (${col.Type})`).join(', '));
       
       // Count records
-      const [count] = await connection.execute('SELECT COUNT(*) as count FROM portfolio_items');
-      console.log(`📊 Current records: ${count[0].count}`);
+      const [count] = await connection.execute('SELECT COUNT(*) as count FROM users');
+      console.log(`📊 Users records: ${count[0].count}`);
     } else {
-      console.log('⚠️  portfolio_items table does not exist - will be created automatically');
+      console.log('⚠️  users table does not exist - will be created automatically');
+    }
+    
+    if (holdingsTable.length > 0) {
+      console.log('✅ holdings table exists');
+      
+      // Count records
+      const [count] = await connection.execute('SELECT COUNT(*) as count FROM holdings');
+      console.log(`📊 Holdings records: ${count[0].count}`);
+    } else {
+      console.log('⚠️  holdings table does not exist - will be created automatically');
+    }
+    
+    if (transactionsTable.length > 0) {
+      console.log('✅ transactions table exists');
+      
+      // Count records
+      const [count] = await connection.execute('SELECT COUNT(*) as count FROM transactions');
+      console.log(`📊 Transactions records: ${count[0].count}`);
+    } else {
+      console.log('⚠️  transactions table does not exist - will be created automatically');
     }
     
     await connection.end();
