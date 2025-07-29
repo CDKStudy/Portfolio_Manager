@@ -1,5 +1,4 @@
 import mysql from 'mysql2/promise';
-import { PortfolioItem, CreatePortfolioItemRequest, UpdatePortfolioItemRequest } from './Portfolio';
 
 export interface DatabaseConfig {
   host: string;
@@ -7,6 +6,51 @@ export interface DatabaseConfig {
   user: string;
   password: string;
   database: string;
+}
+
+export interface User {
+  id: number;
+  username: string;
+  cash: number;
+  netWorth: number;
+}
+
+export interface Holding {
+  id: number;
+  type: 'stock' | 'fund';
+  ticker: string;
+  quantity: number;
+  buyPrice: number;
+  buyDate: Date;
+  userId: number;
+}
+
+export interface Transaction {
+  id: number;
+  userId: number;
+  assetType: 'stock' | 'fund';
+  ticker: string;
+  action: 'buy' | 'sell';
+  quantity: number;
+  price: number;
+  timestamp: Date;
+}
+
+export interface CreateHoldingRequest {
+  type: 'stock' | 'fund';
+  ticker: string;
+  quantity: number;
+  buyPrice: number;
+  userId: number;
+}
+
+export interface CreateTransactionRequest {
+  userId: number;
+  assetType: 'stock' | 'fund';
+  ticker: string;
+  action: 'buy' | 'sell';
+  quantity: number;
+  price: number;
 }
 
 export class Database {
@@ -38,7 +82,7 @@ export class Database {
 
   private async initializeDatabase(): Promise<void> {
     try {
-      // First, create database if it doesn't exist (connect without specifying database)
+      // First, create database if it doesn't exist
       const tempConfig = {
         host: process.env.DB_HOST || 'localhost',
         port: parseInt(process.env.DB_PORT || '3306'),
@@ -51,43 +95,50 @@ export class Database {
       await tempConnection.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME || 'portfolio_manager'}`);
       await tempConnection.end();
 
-      // Now create table in the target database (our pool already connects to the right database)
+      // Create tables
       const connection = await this.pool.getConnection();
       
-      const createTableQuery = `
-        CREATE TABLE IF NOT EXISTS portfolio_items (
-          id INT AUTO_INCREMENT PRIMARY KEY,
-          stock_ticker VARCHAR(10) NOT NULL,
-          volume INT NOT NULL,
-          current_price DECIMAL(10, 2) DEFAULT NULL,
-          total_value DECIMAL(15, 2) DEFAULT NULL,
-          average_buy_price DECIMAL(10, 2) DEFAULT NULL,
-          total_cost DECIMAL(15, 2) DEFAULT NULL,
-          profit_loss DECIMAL(15, 2) DEFAULT NULL,
-          profit_loss_percent DECIMAL(10, 4) DEFAULT NULL,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-          INDEX idx_stock_ticker (stock_ticker),
-          INDEX idx_created_at (created_at)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+      // Users table
+      const createUsersTableQuery = `
+        CREATE TABLE IF NOT EXISTS users (
+          id INT PRIMARY KEY AUTO_INCREMENT,
+          username VARCHAR(50) UNIQUE NOT NULL,
+          cash DECIMAL(18,2) DEFAULT 0.00,
+          net_worth DECIMAL(18,2) DEFAULT 0.00
+        )
       `;
 
+      // Holdings table
+      const createHoldingsTableQuery = `
+        CREATE TABLE IF NOT EXISTS holdings (
+          id INT PRIMARY KEY AUTO_INCREMENT,
+          type ENUM('stock', 'fund') NOT NULL,
+          ticker VARCHAR(20) NOT NULL,
+          quantity DECIMAL(18,4) NOT NULL,
+          buy_price DECIMAL(18,4) NOT NULL,
+          buy_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          user_id INT NOT NULL,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+      `;
+
+      // Transactions table
       const createTransactionsTableQuery = `
         CREATE TABLE IF NOT EXISTS transactions (
-          id INT AUTO_INCREMENT PRIMARY KEY,
-          portfolio_item_id INT NOT NULL,
-          type ENUM('BUY', 'SELL') NOT NULL,
-          volume INT NOT NULL,
-          price DECIMAL(10, 2) NOT NULL,
-          total_amount DECIMAL(15, 2) NOT NULL,
+          id INT PRIMARY KEY AUTO_INCREMENT,
+          user_id INT NOT NULL,
+          asset_type ENUM('stock', 'fund') NOT NULL,
+          ticker VARCHAR(20) NOT NULL,
+          action ENUM('buy', 'sell') NOT NULL,
+          quantity DECIMAL(18,4) NOT NULL,
+          price DECIMAL(18,4) NOT NULL,
           timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (portfolio_item_id) REFERENCES portfolio_items(id) ON DELETE CASCADE,
-          INDEX idx_portfolio_item_id (portfolio_item_id),
-          INDEX idx_timestamp (timestamp)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
       `;
 
-      await connection.execute(createTableQuery);
+      await connection.execute(createUsersTableQuery);
+      await connection.execute(createHoldingsTableQuery);
       await connection.execute(createTransactionsTableQuery);
       connection.release();
       
@@ -98,35 +149,104 @@ export class Database {
     }
   }
 
-  async getAllPortfolioItems(): Promise<PortfolioItem[]> {
+  // User operations
+  async getUser(userId: number): Promise<User | null> {
     try {
       const [rows] = await this.pool.execute(
-        'SELECT * FROM portfolio_items ORDER BY created_at DESC'
+        'SELECT * FROM users WHERE id = ?',
+        [userId]
       );
       
-             return (rows as any[]).map(row => ({
+      const rowArray = rows as any[];
+      if (rowArray.length === 0) {
+        return null;
+      }
+
+      const row = rowArray[0];
+      return {
         id: row.id,
-        stockTicker: row.stock_ticker,
-        volume: row.volume,
-        currentPrice: row.current_price ? parseFloat(row.current_price) : undefined,
-        totalValue: row.total_value ? parseFloat(row.total_value) : undefined,
-        averageBuyPrice: row.average_buy_price ? parseFloat(row.average_buy_price) : undefined,
-        totalCost: row.total_cost ? parseFloat(row.total_cost) : undefined,
-        profitLoss: row.profit_loss ? parseFloat(row.profit_loss) : undefined,
-        profitLossPercent: row.profit_loss_percent ? parseFloat(row.profit_loss_percent) : undefined,
-        createdAt: new Date(row.created_at),
-        updatedAt: new Date(row.updated_at)
-      }));
+        username: row.username,
+        cash: parseFloat(row.cash),
+        netWorth: parseFloat(row.net_worth)
+      };
     } catch (error) {
-      console.error('Error fetching portfolio items:', error);
+      console.error('Error fetching user:', error);
       throw error;
     }
   }
 
-  async getPortfolioItem(id: number): Promise<PortfolioItem | null> {
+  async createUser(username: string, cash: number = 0): Promise<User> {
+    try {
+      const [result] = await this.pool.execute(
+        'INSERT INTO users (username, cash, net_worth) VALUES (?, ?, ?)',
+        [username, cash, cash]
+      );
+
+      const insertId = (result as any).insertId;
+      const user = await this.getUser(insertId);
+      
+      if (!user) {
+        throw new Error('Failed to retrieve created user');
+      }
+
+      return user;
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
+  }
+
+  async updateUserCash(userId: number, cash: number): Promise<void> {
+    try {
+      await this.pool.execute(
+        'UPDATE users SET cash = ? WHERE id = ?',
+        [cash, userId]
+      );
+    } catch (error) {
+      console.error('Error updating user cash:', error);
+      throw error;
+    }
+  }
+
+  async updateUserNetWorth(userId: number, netWorth: number): Promise<void> {
+    try {
+      await this.pool.execute(
+        'UPDATE users SET net_worth = ? WHERE id = ?',
+        [netWorth, userId]
+      );
+    } catch (error) {
+      console.error('Error updating user net worth:', error);
+      throw error;
+    }
+  }
+
+  // Holdings operations
+  async getHoldings(userId: number): Promise<Holding[]> {
     try {
       const [rows] = await this.pool.execute(
-        'SELECT * FROM portfolio_items WHERE id = ?',
+        'SELECT * FROM holdings WHERE user_id = ? ORDER BY buy_date DESC',
+        [userId]
+      );
+      
+      return (rows as any[]).map(row => ({
+        id: row.id,
+        type: row.type,
+        ticker: row.ticker,
+        quantity: parseFloat(row.quantity),
+        buyPrice: parseFloat(row.buy_price),
+        buyDate: new Date(row.buy_date),
+        userId: row.user_id
+      }));
+    } catch (error) {
+      console.error('Error fetching holdings:', error);
+      throw error;
+    }
+  }
+
+  async getHolding(id: number): Promise<Holding | null> {
+    try {
+      const [rows] = await this.pool.execute(
+        'SELECT * FROM holdings WHERE id = ?',
         [id]
       );
       
@@ -136,104 +256,299 @@ export class Database {
       }
 
       const row = rowArray[0];
-             return {
+      return {
         id: row.id,
-        stockTicker: row.stock_ticker,
-        volume: row.volume,
-        currentPrice: row.current_price ? parseFloat(row.current_price) : undefined,
-        totalValue: row.total_value ? parseFloat(row.total_value) : undefined,
-        averageBuyPrice: row.average_buy_price ? parseFloat(row.average_buy_price) : undefined,
-        totalCost: row.total_cost ? parseFloat(row.total_cost) : undefined,
-        profitLoss: row.profit_loss ? parseFloat(row.profit_loss) : undefined,
-        profitLossPercent: row.profit_loss_percent ? parseFloat(row.profit_loss_percent) : undefined,
-        createdAt: new Date(row.created_at),
-        updatedAt: new Date(row.updated_at)
+        type: row.type,
+        ticker: row.ticker,
+        quantity: parseFloat(row.quantity),
+        buyPrice: parseFloat(row.buy_price),
+        buyDate: new Date(row.buy_date),
+        userId: row.user_id
       };
     } catch (error) {
-      console.error('Error fetching portfolio item:', error);
+      console.error('Error fetching holding:', error);
       throw error;
     }
   }
 
-  async createPortfolioItem(item: CreatePortfolioItemRequest): Promise<PortfolioItem> {
+  async createHolding(holding: CreateHoldingRequest): Promise<Holding> {
     try {
       const [result] = await this.pool.execute(
-        'INSERT INTO portfolio_items (stock_ticker, volume) VALUES (?, ?)',
-        [item.stockTicker, item.volume]
+        'INSERT INTO holdings (type, ticker, quantity, buy_price, user_id) VALUES (?, ?, ?, ?, ?)',
+        [holding.type, holding.ticker, holding.quantity, holding.buyPrice, holding.userId]
       );
 
       const insertId = (result as any).insertId;
-      const createdItem = await this.getPortfolioItem(insertId);
+      const createdHolding = await this.getHolding(insertId);
       
-      if (!createdItem) {
-        throw new Error('Failed to retrieve created portfolio item');
+      if (!createdHolding) {
+        throw new Error('Failed to retrieve created holding');
       }
 
-      return createdItem;
+      return createdHolding;
     } catch (error) {
-      console.error('Error creating portfolio item:', error);
+      console.error('Error creating holding:', error);
       throw error;
     }
   }
 
-  async updatePortfolioItem(id: number, updates: UpdatePortfolioItemRequest): Promise<PortfolioItem | null> {
+  async updateHolding(id: number, quantity: number): Promise<Holding | null> {
     try {
-      const setClause: string[] = [];
-      const values: any[] = [];
+      await this.pool.execute(
+        'UPDATE holdings SET quantity = ? WHERE id = ?',
+        [quantity, id]
+      );
 
-      if (updates.stockTicker !== undefined) {
-        setClause.push('stock_ticker = ?');
-        values.push(updates.stockTicker);
-      }
-      if (updates.volume !== undefined) {
-        setClause.push('volume = ?');
-        values.push(updates.volume);
-      }
-
-      if (setClause.length === 0) {
-        return await this.getPortfolioItem(id);
-      }
-
-      setClause.push('updated_at = CURRENT_TIMESTAMP');
-      values.push(id);
-
-      const query = `UPDATE portfolio_items SET ${setClause.join(', ')} WHERE id = ?`;
-      
-      const [result] = await this.pool.execute(query, values);
-      
-      if ((result as any).affectedRows === 0) {
-        return null;
-      }
-
-      return await this.getPortfolioItem(id);
+      return await this.getHolding(id);
     } catch (error) {
-      console.error('Error updating portfolio item:', error);
+      console.error('Error updating holding:', error);
       throw error;
     }
   }
 
-  async deletePortfolioItem(id: number): Promise<boolean> {
+  async deleteHolding(id: number): Promise<boolean> {
     try {
       const [result] = await this.pool.execute(
-        'DELETE FROM portfolio_items WHERE id = ?',
+        'DELETE FROM holdings WHERE id = ?',
         [id]
       );
 
       return (result as any).affectedRows > 0;
     } catch (error) {
-      console.error('Error deleting portfolio item:', error);
+      console.error('Error deleting holding:', error);
       throw error;
     }
   }
 
-  async updateItemPrice(id: number, price: number): Promise<void> {
+  // Transactions operations
+  async getTransactions(userId: number, limit: number = 50): Promise<Transaction[]> {
     try {
-      await this.pool.execute(
-        'UPDATE portfolio_items SET current_price = ?, total_value = volume * ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-        [price, price, id]
+      const [rows] = await this.pool.execute(
+        'SELECT * FROM transactions WHERE user_id = ? ORDER BY timestamp DESC LIMIT ?',
+        [userId, limit]
       );
+      
+      return (rows as any[]).map(row => ({
+        id: row.id,
+        userId: row.user_id,
+        assetType: row.asset_type,
+        ticker: row.ticker,
+        action: row.action,
+        quantity: parseFloat(row.quantity),
+        price: parseFloat(row.price),
+        timestamp: new Date(row.timestamp)
+      }));
     } catch (error) {
-      console.error('Error updating item price:', error);
+      console.error('Error fetching transactions:', error);
+      throw error;
+    }
+  }
+
+  async createTransaction(transaction: CreateTransactionRequest): Promise<Transaction> {
+    try {
+      const [result] = await this.pool.execute(
+        'INSERT INTO transactions (user_id, asset_type, ticker, action, quantity, price) VALUES (?, ?, ?, ?, ?, ?)',
+        [transaction.userId, transaction.assetType, transaction.ticker, transaction.action, transaction.quantity, transaction.price]
+      );
+
+      const insertId = (result as any).insertId;
+      
+      // Fetch the created transaction
+      const [rows] = await this.pool.execute(
+        'SELECT * FROM transactions WHERE id = ?',
+        [insertId]
+      );
+      
+      const row = (rows as any[])[0];
+      return {
+        id: row.id,
+        userId: row.user_id,
+        assetType: row.asset_type,
+        ticker: row.ticker,
+        action: row.action,
+        quantity: parseFloat(row.quantity),
+        price: parseFloat(row.price),
+        timestamp: new Date(row.timestamp)
+      };
+    } catch (error) {
+      console.error('Error creating transaction:', error);
+      throw error;
+    }
+  }
+
+  // Buy operation
+  async buyAsset(userId: number, assetType: 'stock' | 'fund', ticker: string, quantity: number, price: number): Promise<{ success: boolean; holding?: Holding }> {
+    try {
+      // Check if user has enough cash
+      const user = await this.getUser(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      const totalCost = quantity * price;
+      if (user.cash < totalCost) {
+        throw new Error('Insufficient cash');
+      }
+
+      // Check if holding already exists
+      const [existingRows] = await this.pool.execute(
+        'SELECT * FROM holdings WHERE user_id = ? AND ticker = ? AND type = ?',
+        [userId, ticker, assetType]
+      );
+
+      if ((existingRows as any[]).length > 0) {
+        // Update existing holding
+        const existing = (existingRows as any[])[0];
+        const newQuantity = parseFloat(existing.quantity) + quantity;
+        const newTotalCost = (parseFloat(existing.buy_price) * parseFloat(existing.quantity)) + totalCost;
+        const newAveragePrice = newTotalCost / newQuantity;
+
+        await this.pool.execute(
+          'UPDATE holdings SET quantity = ?, buy_price = ? WHERE id = ?',
+          [newQuantity, newAveragePrice, existing.id]
+        );
+
+        // Update user cash
+        await this.updateUserCash(userId, user.cash - totalCost);
+
+        // Record transaction
+        await this.createTransaction({
+          userId,
+          assetType,
+          ticker,
+          action: 'buy',
+          quantity,
+          price
+        });
+
+        const updatedHolding = await this.getHolding(existing.id);
+        return { success: true, holding: updatedHolding || undefined };
+      } else {
+        // Create new holding
+        const holding = await this.createHolding({
+          type: assetType,
+          ticker,
+          quantity,
+          buyPrice: price,
+          userId
+        });
+
+        // Update user cash
+        await this.updateUserCash(userId, user.cash - totalCost);
+
+        // Record transaction
+        await this.createTransaction({
+          userId,
+          assetType,
+          ticker,
+          action: 'buy',
+          quantity,
+          price
+        });
+
+        return { success: true, holding };
+      }
+    } catch (error) {
+      console.error('Error buying asset:', error);
+      throw error;
+    }
+  }
+
+  // Sell operation
+  async sellAsset(userId: number, assetType: 'stock' | 'fund', ticker: string, quantity: number, price: number): Promise<{ success: boolean; remainingQuantity?: number }> {
+    try {
+      // Find the holding
+      const [holdingRows] = await this.pool.execute(
+        'SELECT * FROM holdings WHERE user_id = ? AND ticker = ? AND type = ?',
+        [userId, ticker, assetType]
+      );
+
+      if ((holdingRows as any[]).length === 0) {
+        throw new Error('Holding not found');
+      }
+
+      const holding = (holdingRows as any[])[0];
+      const currentQuantity = parseFloat(holding.quantity);
+
+      if (currentQuantity < quantity) {
+        throw new Error('Insufficient quantity to sell');
+      }
+
+      const totalProceeds = quantity * price;
+      const remainingQuantity = currentQuantity - quantity;
+
+      // Update user cash
+      const user = await this.getUser(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      await this.updateUserCash(userId, user.cash + totalProceeds);
+
+      if (remainingQuantity === 0) {
+        // Delete the holding if all sold
+        await this.deleteHolding(holding.id);
+      } else {
+        // Update the holding
+        await this.updateHolding(holding.id, remainingQuantity);
+      }
+
+      // Record transaction
+      await this.createTransaction({
+        userId,
+        assetType,
+        ticker,
+        action: 'sell',
+        quantity,
+        price
+      });
+
+      return { success: true, remainingQuantity };
+    } catch (error) {
+      console.error('Error selling asset:', error);
+      throw error;
+    }
+  }
+
+  // Get portfolio summary
+  async getPortfolioSummary(userId: number): Promise<{
+    totalHoldings: number;
+    totalValue: number;
+    totalCost: number;
+    totalProfitLoss: number;
+    cash: number;
+    netWorth: number;
+  }> {
+    try {
+      const user = await this.getUser(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      const holdings = await this.getHoldings(userId);
+      
+      let totalCost = 0;
+      let totalValue = 0;
+
+      for (const holding of holdings) {
+        totalCost += holding.quantity * holding.buyPrice;
+        // For now, use buy price as current price (should be updated with real market data)
+        totalValue += holding.quantity * holding.buyPrice;
+      }
+
+      const totalProfitLoss = totalValue - totalCost;
+      const netWorth = user.cash + totalValue;
+
+      return {
+        totalHoldings: holdings.length,
+        totalValue,
+        totalCost,
+        totalProfitLoss,
+        cash: user.cash,
+        netWorth
+      };
+    } catch (error) {
+      console.error('Error getting portfolio summary:', error);
       throw error;
     }
   }
@@ -256,197 +571,6 @@ export class Database {
       console.log('MySQL connection pool closed');
     } catch (error) {
       console.error('Error closing MySQL connection pool:', error);
-    }
-  }
-
-  // Buy stocks
-  async buyStock(buyRequest: { stockTicker: string; volume: number; buyPrice: number }): Promise<PortfolioItem> {
-    try {
-      const { stockTicker, volume, buyPrice } = buyRequest;
-      const totalCost = volume * buyPrice;
-
-      // Check if stock already exists in portfolio
-      const [existingRows] = await this.pool.execute(
-        'SELECT * FROM portfolio_items WHERE stock_ticker = ?',
-        [stockTicker]
-      );
-
-      if ((existingRows as any[]).length > 0) {
-        // Update existing position
-        const existing = (existingRows as any[])[0];
-        const newVolume = existing.volume + volume;
-        const newTotalCost = (existing.total_cost || 0) + totalCost;
-        const newAverageBuyPrice = newTotalCost / newVolume;
-
-        await this.pool.execute(
-          `UPDATE portfolio_items 
-           SET volume = ?, average_buy_price = ?, total_cost = ?, updated_at = CURRENT_TIMESTAMP 
-           WHERE id = ?`,
-          [newVolume, newAverageBuyPrice, newTotalCost, existing.id]
-        );
-
-        // Record transaction
-        await this.pool.execute(
-          'INSERT INTO transactions (portfolio_item_id, type, volume, price, total_amount) VALUES (?, ?, ?, ?, ?)',
-          [existing.id, 'BUY', volume, buyPrice, totalCost]
-        );
-
-        return await this.getPortfolioItem(existing.id) as PortfolioItem;
-      } else {
-        // Create new position
-        const [result] = await this.pool.execute(
-          'INSERT INTO portfolio_items (stock_ticker, volume, average_buy_price, total_cost) VALUES (?, ?, ?, ?)',
-          [stockTicker, volume, buyPrice, totalCost]
-        );
-
-        const insertId = (result as any).insertId;
-
-        // Record transaction
-        await this.pool.execute(
-          'INSERT INTO transactions (portfolio_item_id, type, volume, price, total_amount) VALUES (?, ?, ?, ?, ?)',
-          [insertId, 'BUY', volume, buyPrice, totalCost]
-        );
-
-        return await this.getPortfolioItem(insertId) as PortfolioItem;
-      }
-    } catch (error) {
-      console.error('Error buying stock:', error);
-      throw error;
-    }
-  }
-
-  // Sell stocks
-  async sellStock(sellRequest: { id: number; volume: number; sellPrice: number }): Promise<{ success: boolean; remainingVolume?: number; soldAmount?: number }> {
-    try {
-      const { id, volume, sellPrice } = sellRequest;
-      const soldAmount = volume * sellPrice;
-
-      // Get current position
-      const item = await this.getPortfolioItem(id);
-      if (!item) {
-        throw new Error('Portfolio item not found');
-      }
-
-      if (item.volume < volume) {
-        throw new Error('Insufficient shares to sell');
-      }
-
-      const remainingVolume = item.volume - volume;
-
-      if (remainingVolume === 0) {
-        // Sell all shares - delete the position
-        await this.pool.execute('DELETE FROM portfolio_items WHERE id = ?', [id]);
-      } else {
-        // Update remaining position
-        const newTotalCost = (item.totalCost || 0) * (remainingVolume / item.volume);
-        const newAverageBuyPrice = newTotalCost / remainingVolume;
-        await this.pool.execute(
-          `UPDATE portfolio_items 
-           SET volume = ?, total_cost = ?, average_buy_price = ?, updated_at = CURRENT_TIMESTAMP 
-           WHERE id = ?`,
-          [remainingVolume, newTotalCost, newAverageBuyPrice, id]
-        );
-      }
-
-      // Record transaction
-      await this.pool.execute(
-        'INSERT INTO transactions (portfolio_item_id, type, volume, price, total_amount) VALUES (?, ?, ?, ?, ?)',
-        [id, 'SELL', volume, sellPrice, soldAmount]
-      );
-
-      return {
-        success: true,
-        remainingVolume: remainingVolume,
-        soldAmount: soldAmount
-      };
-    } catch (error) {
-      console.error('Error selling stock:', error);
-      throw error;
-    }
-  }
-
-  // Get transaction history
-  async getTransactionHistory(itemId?: number): Promise<any[]> {
-    try {
-      let query = `
-        SELECT t.*, p.stock_ticker 
-        FROM transactions t 
-        JOIN portfolio_items p ON t.portfolio_item_id = p.id
-        ORDER BY t.timestamp DESC
-      `;
-      
-      if (itemId) {
-        query = `
-          SELECT t.*, p.stock_ticker 
-          FROM transactions t 
-          JOIN portfolio_items p ON t.portfolio_item_id = p.id
-          WHERE t.portfolio_item_id = ?
-          ORDER BY t.timestamp DESC
-        `;
-      }
-
-      const [rows] = await this.pool.execute(query, itemId ? [itemId] : []);
-      
-      return (rows as any[]).map(row => ({
-        id: row.id,
-        portfolioItemId: row.portfolio_item_id,
-        stockTicker: row.stock_ticker,
-        type: row.type,
-        volume: row.volume,
-        price: parseFloat(row.price),
-        totalAmount: parseFloat(row.total_amount),
-        timestamp: new Date(row.timestamp)
-      }));
-    } catch (error) {
-      console.error('Error fetching transaction history:', error);
-      throw error;
-    }
-  }
-
-  // Update profit/loss calculations
-  async updateProfitLoss(id: number, currentPrice: number): Promise<void> {
-    try {
-      const item = await this.getPortfolioItem(id);
-      if (!item) return;
-
-      const totalValue = item.volume * currentPrice;
-      const profitLoss = totalValue - (item.totalCost || 0);
-      const profitLossPercent = item.totalCost ? (profitLoss / item.totalCost) * 100 : 0;
-
-      await this.pool.execute(
-        `UPDATE portfolio_items 
-         SET current_price = ?, total_value = ?, profit_loss = ?, profit_loss_percent = ?, updated_at = CURRENT_TIMESTAMP 
-         WHERE id = ?`,
-        [currentPrice, totalValue, profitLoss, profitLossPercent, id]
-      );
-    } catch (error) {
-      console.error('Error updating profit/loss:', error);
-      throw error;
-    }
-  }
-
-  // Get database statistics
-  async getStats(): Promise<{ totalItems: number; totalValue: number; totalCost: number; totalProfitLoss: number }> {
-    try {
-      const [rows] = await this.pool.execute(
-        `SELECT 
-          COUNT(*) as totalItems, 
-          COALESCE(SUM(total_value), 0) as totalValue,
-          COALESCE(SUM(total_cost), 0) as totalCost,
-          COALESCE(SUM(profit_loss), 0) as totalProfitLoss
-         FROM portfolio_items`
-      );
-      
-      const stats = (rows as any[])[0];
-      return {
-        totalItems: stats.totalItems,
-        totalValue: parseFloat(stats.totalValue),
-        totalCost: parseFloat(stats.totalCost),
-        totalProfitLoss: parseFloat(stats.totalProfitLoss)
-      };
-    } catch (error) {
-      console.error('Error fetching database stats:', error);
-      throw error;
     }
   }
 } 

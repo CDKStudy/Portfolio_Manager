@@ -6,8 +6,8 @@
         <div class="logo">
           <i class="icon">📊</i>
           <span>Portfolio Manager</span>
-        </div>
       </div>
+            </div>
       
       <ul class="nav-menu">
         <li class="nav-item active">
@@ -17,13 +17,13 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="#" class="nav-link">
+          <a href="#" class="nav-link" @click="activeTab = 'stocks'">
             <i class="nav-icon">📈</i>
             <span>STOCK</span>
           </a>
         </li>
         <li class="nav-item">
-          <a href="#" class="nav-link">
+          <a href="#" class="nav-link" @click="activeTab = 'funds'">
             <i class="nav-icon">🏛️</i>
             <span>BOND</span>
           </a>
@@ -63,7 +63,7 @@
       <div class="user-profile-sidebar">
         <div class="user-avatar">
           <span>JD</span>
-        </div>
+          </div>
         <div class="user-info">
           <div class="user-name">John Doe</div>
           <div class="user-email">john.doe@example.com</div>
@@ -77,11 +77,11 @@
       <header class="main-header">
         <div class="header-left">
           <h1>Dashboard</h1>
-        </div>
-        <div class="header-right">
-          <span class="last-updated">Last updated: 7/28/2025</span>
-        </div>
-      </header>
+      </div>
+      <div class="header-right">
+          <span class="last-updated">Last updated: {{ new Date().toLocaleTimeString() }}</span>
+      </div>
+    </header>
 
       <!-- Portfolio Summary Cards -->
       <section class="portfolio-summary">
@@ -90,61 +90,67 @@
             <span class="card-title">Total Portfolio Value</span>
             <i class="card-icon">💰</i>
           </div>
-          <div class="card-content">
+        <div class="card-content">
             <div class="card-value">${{ formatCurrency(portfolio.totalValue || 45231.89) }}</div>
             <div class="card-change positive">
               <span class="change-icon">📈</span>
               <span>+2.5% from last month</span>
             </div>
-          </div>
         </div>
-
+      </div>
+      
         <div class="summary-card stocks">
           <div class="card-header">
             <span class="card-title">Stocks</span>
             <i class="card-icon">📊</i>
           </div>
-          <div class="card-content">
-            <div class="card-value">$28,459.00</div>
+        <div class="card-content">
+            <div class="card-value">${{ formatCurrency(stockHoldings.totalValue || 28459.00) }}</div>
             <div class="card-change positive">
               <span class="change-icon">📈</span>
               <span>+4.3% from last month</span>
             </div>
-          </div>
         </div>
-
+      </div>
+      
         <div class="summary-card bonds">
           <div class="card-header">
-            <span class="card-title">Bonds</span>
+            <span class="card-title">Funds</span>
             <i class="card-icon">📊</i>
           </div>
-          <div class="card-content">
-            <div class="card-value">$12,500.00</div>
+        <div class="card-content">
+            <div class="card-value">${{ formatCurrency(fundHoldings.totalValue || 12500.00) }}</div>
             <div class="card-change negative">
               <span class="change-icon">📉</span>
               <span>-0.8% from last month</span>
             </div>
-          </div>
         </div>
-
+      </div>
+      
         <div class="summary-card cash">
           <div class="card-header">
             <span class="card-title">Cash</span>
             <i class="card-icon">💰</i>
           </div>
-          <div class="card-content">
-            <div class="card-value">$4,272.89</div>
+        <div class="card-content">
+            <div class="card-value">${{ formatCurrency(userInfo.cash || 4272.89) }}</div>
             <div class="card-change neutral">
               <span>+0.1% interest rate</span>
-            </div>
-          </div>
         </div>
+      </div>
+    </div>
       </section>
 
       <!-- Tab Navigation -->
       <section class="tab-navigation">
         <button class="tab-btn" :class="{ active: activeTab === 'overview' }" @click="activeTab = 'overview'">
           Portfolio Overview
+        </button>
+        <button class="tab-btn" :class="{ active: activeTab === 'stocks' }" @click="activeTab = 'stocks'">
+          Stocks
+        </button>
+        <button class="tab-btn" :class="{ active: activeTab === 'funds' }" @click="activeTab = 'funds'">
+          Funds
         </button>
         <button class="tab-btn" :class="{ active: activeTab === 'performance' }" @click="activeTab = 'performance'">
           Performance
@@ -159,54 +165,57 @@
         <!-- Portfolio Overview Tab -->
         <div v-if="activeTab === 'overview'" class="tab-panel">
           <div class="content-grid">
-            <!-- Portfolio Performance Chart -->
+        <!-- Portfolio Performance Chart -->
             <div class="chart-card performance-chart">
-              <h3>Portfolio Performance</h3>
-              <div class="chart-container">
+          <h3>Portfolio Performance</h3>
+          <div class="chart-container">
                 <Line 
                   :data="chartData" 
                   :options="chartOptions"
                 />
-              </div>
-            </div>
+          </div>
+        </div>
 
             <!-- Holdings List -->
             <div class="holdings-card">
               <div class="holdings-header">
-                <h3>Your Holdings</h3>
+            <h3>Your Holdings</h3>
                 <button @click="showBuyModal = true" class="btn btn-primary">
-                  + Add Stock
+                  + Add Asset
                 </button>
               </div>
               
-              <div v-if="loading && portfolio.items.length === 0" class="loading-state">
+              <div v-if="loading && allHoldings.length === 0" class="loading-state">
                 <div class="spinner"></div>
                 <p>Loading portfolio...</p>
               </div>
-              <div v-else-if="portfolio.items.length === 0" class="empty-state">
+              <div v-else-if="allHoldings.length === 0" class="empty-state">
                 <div class="empty-icon">📈</div>
-                <p>No stocks in your portfolio yet</p>
-                <p class="empty-subtitle">Start by adding your first stock!</p>
+                <p>No holdings in your portfolio yet</p>
+                <p class="empty-subtitle">Start by adding your first asset!</p>
               </div>
               <div v-else class="holdings-list">
                 <div
-                  v-for="item in portfolio.items"
-                  :key="item.id"
+                  v-for="holding in allHoldings"
+                  :key="holding.id"
                   class="holding-item"
                 >
                   <div class="holding-info">
-                    <div class="stock-symbol">{{ item.stockTicker }}</div>
-                    <div class="stock-name">{{ item.volume }} shares</div>
+                    <div class="stock-symbol">{{ holding.ticker }}</div>
+                    <div class="stock-name">{{ holding.quantity }} {{ holding.type === 'fund' ? 'units' : 'shares' }}</div>
+                    <div class="holding-type" :class="holding.type">
+                      {{ holding.type.toUpperCase() }}
+                    </div>
                   </div>
                   <div class="holding-values">
-                    <div class="current-value">${{ formatCurrency(item.currentPrice || 0) }}</div>
-                    <div class="profit-loss" :class="{ positive: (item.profitLoss || 0) >= 0, negative: (item.profitLoss || 0) < 0 }">
-                      {{ (item.profitLoss || 0) >= 0 ? '+' : '' }}${{ formatCurrency(item.profitLoss || 0) }}
+                    <div class="current-value">${{ formatCurrency(holding.currentPrice || holding.buyPrice) }}</div>
+                    <div class="profit-loss" :class="{ positive: (holding.profitLoss || 0) >= 0, negative: (holding.profitLoss || 0) < 0 }">
+                      {{ (holding.profitLoss || 0) >= 0 ? '+' : '' }}${{ formatCurrency(holding.profitLoss || 0) }}
                     </div>
                   </div>
                   <div class="holding-actions">
-                    <button @click="sellStock(item)" class="btn btn-sm btn-outline">Sell</button>
-                    <button @click="deleteItem(item.id)" class="btn btn-sm btn-danger">×</button>
+                    <button @click="sellAsset(holding)" class="btn btn-sm btn-outline">Sell</button>
+                    <button @click="deleteHolding(holding.id)" class="btn btn-sm btn-danger">×</button>
                   </div>
                 </div>
               </div>
@@ -220,7 +229,7 @@
                   v-for="stock in marketStocks.slice(0, 6)" 
                   :key="stock.ticker"
                   class="market-item"
-                  @click="selectStock(stock.ticker)"
+                  @click="selectAsset(stock.ticker, 'stock')"
                 >
                   <div class="market-symbol">{{ stock.ticker }}</div>
                   <div class="market-price">${{ formatCurrency(stock.price) }}</div>
@@ -233,6 +242,134 @@
           </div>
         </div>
 
+        <!-- Stocks Tab -->
+        <div v-if="activeTab === 'stocks'" class="tab-panel">
+          <div class="asset-management">
+            <div class="asset-header">
+              <h3>Stock Holdings</h3>
+              <button @click="showBuyModal = true; selectedAssetType = 'stock'" class="btn btn-primary">
+              + Buy Stock
+            </button>
+          </div>
+          
+            <div v-if="loading" class="loading-state">
+              <div class="spinner"></div>
+              <p>Loading stocks...</p>
+          </div>
+            <div v-else-if="stockHoldings.items.length === 0" class="empty-state">
+              <div class="empty-icon">📈</div>
+              <p>No stocks in your portfolio</p>
+              <p class="empty-subtitle">Start by buying your first stock!</p>
+          </div>
+          <div v-else class="holdings-grid">
+            <div
+                v-for="holding in stockHoldings.items"
+                :key="holding.id"
+              class="holding-card"
+            >
+              <div class="holding-header">
+                <div class="stock-info">
+                    <h4>{{ holding.ticker }}</h4>
+                    <span class="stock-volume">{{ holding.quantity }} shares</span>
+                </div>
+                <div class="holding-actions">
+                    <button @click="sellAsset(holding)" class="btn btn-outline btn-sm">
+                    Sell
+                  </button>
+                    <button @click="deleteHolding(holding.id)" class="btn btn-danger btn-sm">
+                    ×
+                  </button>
+                </div>
+              </div>
+              
+              <div class="holding-details">
+                <div class="price-row">
+                    <span class="current-price">${{ formatCurrency(holding.currentPrice || holding.buyPrice) }}</span>
+                    <span class="price-change" :class="{ positive: (holding.profitLoss || 0) >= 0, negative: (holding.profitLoss || 0) < 0 }">
+                      {{ (holding.profitLoss || 0) >= 0 ? '+' : '' }}${{ formatCurrency(holding.profitLoss || 0) }}
+                  </span>
+                </div>
+                
+                <div class="value-row">
+                    <span class="total-value">Total: ${{ formatCurrency(holding.totalValue || (holding.quantity * (holding.currentPrice || holding.buyPrice))) }}</span>
+                    <span class="return-percent" :class="{ positive: (holding.profitLossPercent || 0) >= 0, negative: (holding.profitLossPercent || 0) < 0 }">
+                      {{ (holding.profitLossPercent || 0) >= 0 ? '+' : '' }}{{ formatPercent(holding.profitLossPercent || 0) }}%
+                  </span>
+                </div>
+                
+                <div class="cost-row">
+                    <span class="avg-cost">Avg Cost: ${{ formatCurrency(holding.buyPrice) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+        <!-- Funds Tab -->
+        <div v-if="activeTab === 'funds'" class="tab-panel">
+          <div class="asset-management">
+            <div class="asset-header">
+              <h3>Fund Holdings</h3>
+              <button @click="showBuyModal = true; selectedAssetType = 'fund'" class="btn btn-primary">
+                + Buy Fund
+              </button>
+          </div>
+            
+            <div v-if="loading" class="loading-state">
+              <div class="spinner"></div>
+              <p>Loading funds...</p>
+            </div>
+            <div v-else-if="fundHoldings.items.length === 0" class="empty-state">
+              <div class="empty-icon">🏛️</div>
+              <p>No funds in your portfolio</p>
+              <p class="empty-subtitle">Start by buying your first fund!</p>
+            </div>
+            <div v-else class="holdings-grid">
+              <div
+                v-for="holding in fundHoldings.items"
+                :key="holding.id"
+                class="holding-card"
+              >
+                <div class="holding-header">
+                  <div class="stock-info">
+                    <h4>{{ holding.ticker }}</h4>
+                    <span class="stock-volume">{{ holding.quantity }} units</span>
+              </div>
+                  <div class="holding-actions">
+                    <button @click="sellAsset(holding)" class="btn btn-outline btn-sm">
+                      Sell
+                    </button>
+                    <button @click="deleteHolding(holding.id)" class="btn btn-danger btn-sm">
+                      ×
+                    </button>
+            </div>
+          </div>
+                
+                <div class="holding-details">
+                  <div class="price-row">
+                    <span class="current-price">${{ formatCurrency(holding.currentPrice || holding.buyPrice) }}</span>
+                    <span class="price-change" :class="{ positive: (holding.profitLoss || 0) >= 0, negative: (holding.profitLoss || 0) < 0 }">
+                      {{ (holding.profitLoss || 0) >= 0 ? '+' : '' }}${{ formatCurrency(holding.profitLoss || 0) }}
+                    </span>
+          </div>
+                  
+                  <div class="value-row">
+                    <span class="total-value">Total: ${{ formatCurrency(holding.totalValue || (holding.quantity * (holding.currentPrice || holding.buyPrice))) }}</span>
+                    <span class="return-percent" :class="{ positive: (holding.profitLossPercent || 0) >= 0, negative: (holding.profitLossPercent || 0) < 0 }">
+                      {{ (holding.profitLossPercent || 0) >= 0 ? '+' : '' }}{{ formatPercent(holding.profitLossPercent || 0) }}%
+                    </span>
+        </div>
+
+                  <div class="cost-row">
+                    <span class="avg-cost">Avg Cost: ${{ formatCurrency(holding.buyPrice) }}</span>
+              </div>
+                </div>
+              </div>
+              </div>
+            </div>
+        </div>
+
         <!-- Performance Tab -->
         <div v-if="activeTab === 'performance'" class="tab-panel">
           <div class="performance-content">
@@ -243,10 +380,10 @@
                   :data="chartData" 
                   :options="performanceChartOptions"
                 />
-              </div>
-            </div>
           </div>
         </div>
+      </div>
+    </div>
 
         <!-- Asset Allocation Tab -->
         <div v-if="activeTab === 'allocation'" class="tab-panel">
@@ -261,42 +398,50 @@
       </section>
     </main>
 
-    <!-- Modals (Buy/Sell) -->
+    <!-- Buy Asset Modal -->
     <div v-if="showBuyModal" class="modal-overlay" @click="showBuyModal = false">
       <div class="modal" @click.stop>
         <div class="modal-header">
-          <h3>Buy Stock</h3>
+          <h3>Buy {{ selectedAssetType === 'fund' ? 'Fund' : 'Stock' }}</h3>
           <button @click="showBuyModal = false" class="close-btn">×</button>
         </div>
-        <form @submit.prevent="buyStock" class="modal-form">
+        <form @submit.prevent="buyAsset" class="modal-form">
           <div class="form-group">
-            <label>Stock Symbol</label>
+            <label>Asset Type</label>
+            <select v-model="buyForm.assetType" class="form-input" required>
+              <option value="stock">Stock</option>
+              <option value="fund">Fund</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>{{ buyForm.assetType === 'fund' ? 'Fund' : 'Stock' }} Symbol</label>
             <input
-              v-model="buyForm.stockTicker"
+              v-model="buyForm.ticker"
               type="text"
-              placeholder="e.g., AAPL"
+              :placeholder="buyForm.assetType === 'fund' ? 'e.g., 510300' : 'e.g., AAPL'"
               required
               class="form-input"
             />
           </div>
           <div class="form-group">
-            <label>Number of Shares</label>
+            <label>Number of {{ buyForm.assetType === 'fund' ? 'Units' : 'Shares' }}</label>
             <input
-              v-model.number="buyForm.volume"
+              v-model.number="buyForm.quantity"
               type="number"
               min="1"
+              step="0.0001"
               required
-              placeholder="Enter quantity"
+              :placeholder="`Enter ${buyForm.assetType === 'fund' ? 'units' : 'shares'}`"
               class="form-input"
             />
           </div>
           <div class="form-group">
-            <label>Price per Share (optional)</label>
+            <label>Price per {{ buyForm.assetType === 'fund' ? 'Unit' : 'Share' }} (optional)</label>
             <input
-              v-model.number="buyForm.buyPrice"
+              v-model.number="buyForm.price"
               type="number"
-              step="0.01"
-              placeholder="Leave empty for market price"
+              step="0.0001"
+              :placeholder="`Leave empty for market price`"
               class="form-input"
             />
           </div>
@@ -305,7 +450,56 @@
               Cancel
             </button>
             <button type="submit" :disabled="loading" class="btn btn-primary">
-              {{ loading ? 'Buying...' : 'Buy Stock' }}
+              {{ loading ? 'Buying...' : `Buy ${buyForm.assetType === 'fund' ? 'Fund' : 'Stock'}` }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Sell Asset Modal -->
+    <div v-if="showSellModal" class="modal-overlay" @click="showSellModal = false">
+      <div class="modal" @click.stop>
+        <div class="modal-header">
+          <h3>Sell {{ sellingAsset?.type === 'fund' ? 'Fund' : 'Stock' }}</h3>
+          <button @click="showSellModal = false" class="close-btn">×</button>
+        </div>
+        <form @submit.prevent="sellAssetConfirm" class="modal-form">
+          <div class="form-group">
+            <label>{{ sellingAsset?.type === 'fund' ? 'Fund' : 'Stock' }}: {{ sellingAsset?.ticker }}</label>
+          </div>
+          <div class="form-group">
+            <label>Available {{ sellingAsset?.type === 'fund' ? 'Units' : 'Shares' }}: {{ sellingAsset?.quantity }}</label>
+          </div>
+          <div class="form-group">
+            <label>Number of {{ sellingAsset?.type === 'fund' ? 'Units' : 'Shares' }} to Sell:</label>
+            <input
+              v-model.number="sellForm.quantity"
+              type="number"
+              :max="sellingAsset?.quantity"
+              min="0.0001"
+              step="0.0001"
+              required
+              :placeholder="`Enter ${sellingAsset?.type === 'fund' ? 'units' : 'shares'}`"
+              class="form-input"
+            />
+          </div>
+          <div class="form-group">
+            <label>Price per {{ sellingAsset?.type === 'fund' ? 'Unit' : 'Share' }} (optional):</label>
+            <input
+              v-model.number="sellForm.price"
+              type="number"
+              step="0.0001"
+              :placeholder="`Leave empty for market price`"
+              class="form-input"
+            />
+          </div>
+          <div class="modal-actions">
+            <button type="button" @click="showSellModal = false" class="btn btn-secondary">
+              Cancel
+            </button>
+            <button type="submit" :disabled="loading" class="btn btn-danger">
+              {{ loading ? 'Selling...' : `Sell ${sellingAsset?.type === 'fund' ? 'Fund' : 'Stock'}` }}
             </button>
           </div>
         </form>
@@ -321,7 +515,7 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { Line } from 'vue-chartjs';
 import {
   Chart as ChartJS,
@@ -333,7 +527,7 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
-import api from '../services/api';
+import { portfolioAPI, stockAPI, fundAPI } from '../services/api';
 
 // 注册Chart.js组件
 ChartJS.register(
@@ -363,6 +557,7 @@ export default {
     const loading = ref(false);
     const error = ref('');
     const activeTab = ref('overview');
+    const selectedAssetType = ref('stock');
     const searchQuery = ref('');
     const searchResults = ref([]);
     const marketStocks = ref([
@@ -373,20 +568,36 @@ export default {
       { ticker: 'TSLA', price: 316.06, change: 11.11, changePercent: 3.52 },
       { ticker: 'META', price: 712.68, change: -2.14, changePercent: -0.30 }
     ]);
+    const userInfo = ref({
+      id: 1,
+      username: 'john_doe',
+      cash: 4272.89,
+      netWorth: 45231.89
+    });
+    const allHoldings = ref([]);
+    const stockHoldings = ref({
+      items: [],
+      totalValue: 28459.00
+    });
+    const fundHoldings = ref({
+      items: [],
+      totalValue: 12500.00
+    });
     const recentTransactions = ref([]);
     const showBuyModal = ref(false);
     const showSellModal = ref(false);
-    const sellingItem = ref(null);
+    const sellingAsset = ref(null);
     
     const buyForm = ref({
-      stockTicker: '',
-      volume: 1,
-      buyPrice: null
+      assetType: 'stock',
+      ticker: '',
+      quantity: 1,
+      price: null
     });
     
     const sellForm = ref({
-      volume: 1,
-      sellPrice: null
+      quantity: 1,
+      price: null
     });
 
     // 图表数据
@@ -472,58 +683,155 @@ export default {
       aspectRatio: 3
     });
 
-    // API functions (simplified for demo)
+    // Load portfolio data
     const loadPortfolio = async () => {
       loading.value = true;
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        // Use default values for demo
+        // Load portfolio summary
+        const portfolioResponse = await portfolioAPI.getPortfolio();
+        portfolio.value = portfolioResponse.data;
+
+        // Load user info
+        const userResponse = await portfolioAPI.getUser();
+        userInfo.value = userResponse.data;
+
+        // Load holdings
+        const holdingsResponse = await portfolioAPI.getHoldings();
+        allHoldings.value = holdingsResponse.data.holdings || [];
+
+        // Separate stocks and funds
+        stockHoldings.value.items = allHoldings.value.filter(h => h.type === 'stock');
+        fundHoldings.value.items = allHoldings.value.filter(h => h.type === 'fund');
+
+        // Calculate totals
+        stockHoldings.value.totalValue = stockHoldings.value.items.reduce((sum, h) => 
+          sum + (h.totalValue || (h.quantity * (h.currentPrice || h.buyPrice))), 0);
+        fundHoldings.value.totalValue = fundHoldings.value.items.reduce((sum, h) => 
+          sum + (h.totalValue || (h.quantity * (h.currentPrice || h.buyPrice))), 0);
+
       } catch (err) {
         error.value = 'Failed to load portfolio';
+        console.error('Error loading portfolio:', err);
       } finally {
         loading.value = false;
       }
     };
 
-    const selectStock = (ticker) => {
-      buyForm.value.stockTicker = ticker;
-      showBuyModal.value = true;
-    };
-
-    const buyStock = async () => {
-      if (!buyForm.value.stockTicker || !buyForm.value.volume) {
+    // Buy asset function
+    const buyAsset = async () => {
+      if (!buyForm.value.ticker || !buyForm.value.quantity) {
         error.value = 'Please fill in all required fields';
         return;
       }
 
       loading.value = true;
+      error.value = '';
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        const api = buyForm.value.assetType === 'fund' ? fundAPI : stockAPI;
+        const response = await api.buyStock(
+          buyForm.value.ticker,
+          buyForm.value.quantity,
+          buyForm.value.price
+        );
         
+        // Reset form
         buyForm.value = {
-          stockTicker: '',
-          volume: 1,
-          buyPrice: null
+          assetType: 'stock',
+          ticker: '',
+          quantity: 1,
+          price: null
         };
         showBuyModal.value = false;
+        
+        // Reload data
+        await loadPortfolio();
         
         // Show success message
         error.value = '';
       } catch (err) {
-        error.value = 'Failed to buy stock';
+        error.value = err.response?.data?.error || 'Failed to buy asset';
+        console.error('Error buying asset:', err);
       } finally {
         loading.value = false;
       }
     };
 
-    const sellStock = (item) => {
-      // Implement sell functionality
+    // Sell asset function
+    const sellAsset = (asset) => {
+      sellingAsset.value = asset;
+      sellForm.value = {
+        quantity: 1,
+        price: null
+      };
+      showSellModal.value = true;
     };
 
-    const deleteItem = (id) => {
-      // Implement delete functionality
+    const sellAssetConfirm = async () => {
+      if (!sellingAsset.value || !sellForm.value.quantity) {
+        error.value = 'Please fill in all required fields';
+        return;
+      }
+
+      if (sellForm.value.quantity > sellingAsset.value.quantity) {
+        error.value = 'Cannot sell more than you own';
+        return;
+      }
+
+      loading.value = true;
+      error.value = '';
+      try {
+        const api = sellingAsset.value.type === 'fund' ? fundAPI : stockAPI;
+        const response = await api.sellStock(
+          sellingAsset.value.ticker,
+          sellForm.value.quantity,
+          sellForm.value.price
+        );
+        
+        // Reset form
+        sellForm.value = {
+          quantity: 1,
+          price: null
+        };
+        sellingAsset.value = null;
+        showSellModal.value = false;
+        
+        // Reload data
+        await loadPortfolio();
+        
+        // Show success message
+        error.value = '';
+      } catch (err) {
+        error.value = err.response?.data?.error || 'Failed to sell asset';
+        console.error('Error selling asset:', err);
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    // Delete holding
+    const deleteHolding = async (id) => {
+      if (!confirm('Are you sure you want to delete this holding?')) {
+        return;
+      }
+
+      loading.value = true;
+      error.value = '';
+      try {
+        await portfolioAPI.deleteHolding(id);
+        await loadPortfolio();
+      } catch (err) {
+        error.value = 'Failed to delete holding';
+        console.error('Error deleting holding:', err);
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    // Select asset from market watch
+    const selectAsset = (ticker, type) => {
+      buyForm.value.ticker = ticker;
+      buyForm.value.assetType = type;
+      showBuyModal.value = true;
     };
 
     const formatCurrency = (value) => {
@@ -549,22 +857,28 @@ export default {
       loading,
       error,
       activeTab,
+      selectedAssetType,
       searchQuery,
       searchResults,
       marketStocks,
+      userInfo,
+      allHoldings,
+      stockHoldings,
+      fundHoldings,
       recentTransactions,
       showBuyModal,
       showSellModal,
-      sellingItem,
+      sellingAsset,
       buyForm,
       sellForm,
       chartData,
       chartOptions,
       performanceChartOptions,
-      selectStock,
-      buyStock,
-      sellStock,
-      deleteItem,
+      buyAsset,
+      sellAsset,
+      sellAssetConfirm,
+      deleteHolding,
+      selectAsset,
       formatCurrency,
       formatPercent
     };
@@ -907,6 +1221,25 @@ export default {
   margin-top: 2px;
 }
 
+.holding-type {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.holding-type.stock {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.holding-type.fund {
+  background: #fef3c7;
+  color: #92400e;
+}
+
 .holding-values {
   text-align: right;
   margin-right: 16px;
@@ -1226,6 +1559,142 @@ export default {
   border: 1px solid #e5e7eb;
   color: #6b7280;
   font-size: 18px;
+}
+
+/* Additional styles for asset management */
+.asset-management {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e5e7eb;
+}
+
+.asset-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.asset-header h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.holdings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.holding-card {
+  background: #f9fafb;
+  border-radius: 12px;
+    padding: 20px;
+  border: 1px solid #f3f4f6;
+  transition: all 0.2s ease;
+}
+
+.holding-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+  .holding-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.stock-info {
+  flex: 1;
+}
+
+.stock-info h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.stock-volume {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.holding-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.holding-details {
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.current-price {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 16px;
+}
+
+.price-change {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.price-change.positive {
+  color: #10b981;
+}
+
+.price-change.negative {
+  color: #ef4444;
+}
+
+.value-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.total-value {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 16px;
+}
+
+.return-percent {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.return-percent.positive {
+  color: #10b981;
+}
+
+.return-percent.negative {
+  color: #ef4444;
+}
+
+.cost-row {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.avg-cost {
+  font-weight: 500;
 }
 
 /* Responsive Design */
