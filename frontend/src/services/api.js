@@ -107,6 +107,13 @@ export const stockAPI = {
   searchStocks: (query) => portfolioAPI.searchStocks(query)
 }
 
+// Prediction API functions
+export const predictionAPI = {
+  getPredictions() {
+    return axios.get('/api/predict');
+  }
+};
+
 // Fund-specific API functions
 export const fundAPI = {
   // Buy fund
