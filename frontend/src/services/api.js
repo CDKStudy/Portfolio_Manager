@@ -56,7 +56,19 @@ export const portfolioAPI = {
   getPopularTickers: () => api.get('/portfolio/meta/popular-tickers'),
 
   // Get stock price
-  getStockPrice: (ticker) => api.get('/portfolio/meta/stock-price', { params: { ticker } })
+  getStockPrice: (ticker) => api.get('/portfolio/meta/stock-price', { params: { ticker } }),
+
+  // Cash management
+  getCashBalance: (userId = DEFAULT_USER_ID) => api.get('/portfolio/cash', { params: { userId } }),
+  
+  // Deposit cash
+  depositCash: (amount, userId = DEFAULT_USER_ID) => api.post('/portfolio/cash/deposit', { amount }, { params: { userId } }),
+  
+  // Withdraw cash
+  withdrawCash: (amount, userId = DEFAULT_USER_ID) => api.post('/portfolio/cash/withdraw', { amount }, { params: { userId } }),
+
+  // Get cash transactions
+  getCashTransactions: (userId = DEFAULT_USER_ID, limit = 20) => api.get('/portfolio/cash/transactions', { params: { userId, limit } })
 }
 
 // Stock-specific API functions
