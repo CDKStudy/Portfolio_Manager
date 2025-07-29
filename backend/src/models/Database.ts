@@ -201,7 +201,7 @@ export class Database {
       await this.pool.execute(
         'UPDATE users SET cash = ? WHERE id = ?',
         [cash, userId]
-      );
+      )
     } catch (error) {
       console.error('Error updating user cash:', error);
       throw error;

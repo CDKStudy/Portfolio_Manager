@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 import { Database } from '../models/Database';
 import { FinancialDataService } from '../services/FinancialDataService';
 
@@ -264,6 +264,20 @@ router.get('/meta/popular-tickers', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+//NEW ADD ------
+// GET /api/portfolio/meta/market-watch - Get real-time prices for popular tickers
+router.get('/meta/market-watch', async (req: Request, res: Response) => {
+  try {
+    const tickers = financialService.getPopularTickers(); // Hot Stock List
+    const prices = await financialService.getMultipleStockPrices(tickers); // Batch get market information
+    res.json({ stocks: prices });
+  } catch (error) {
+    console.error('Error fetching market watch data:', error);
+    res.status(500).json({ error: 'Failed to fetch market data' });
+  }
+});
+
 
 // GET /api/portfolio/user - Get user info
 router.get('/user', async (req: Request, res: Response) => {

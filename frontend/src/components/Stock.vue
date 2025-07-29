@@ -33,9 +33,9 @@
               <button @click="sellAsset(holding)" class="btn btn-outline btn-sm">
                 Sell
               </button>
-              <button @click="deleteHolding(holding.id)" class="btn btn-danger btn-sm">
+              <!-- <button @click="deleteHolding(holding.id)" class="btn btn-danger btn-sm">
                 ×
-              </button>
+              </button> -->
             </div>
           </div>
           
@@ -193,8 +193,8 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
-import { stockAPI, portfolioAPI } from '../services/api';
+import { onMounted, ref } from 'vue';
+import { portfolioAPI, stockAPI } from '../services/api';
 
 export default {
   name: 'Stock',
@@ -202,16 +202,18 @@ export default {
     const loading = ref(false);
     const error = ref('');
     const stockHoldings = ref([]);
-    const marketStocks = ref([
-      { ticker: 'AAPL', price: 213.88, change: 1.28, changePercent: 0.06 },
-      { ticker: 'MSFT', price: 513.71, change: 2.82, changePercent: 0.55 },
-      { ticker: 'GOOGL', price: 193.18, change: 1.02, changePercent: 0.53 },
-      { ticker: 'AMZN', price: 231.44, change: -0.79, changePercent: -0.34 },
-      { ticker: 'TSLA', price: 316.06, change: 11.11, changePercent: 3.52 },
-      { ticker: 'META', price: 712.68, change: -2.14, changePercent: -0.30 },
-      { ticker: 'NVDA', price: 142.25, change: 3.15, changePercent: 2.27 },
-      { ticker: 'NFLX', price: 685.34, change: -5.22, changePercent: -0.76 }
-    ]);
+    //Empty array for market stocks
+    const marketStocks = ref([]);
+    // const marketStocks = ref([
+    //   { ticker: 'AAPL', price: 213.88, change: 1.28, changePercent: 0.06 },
+    //   { ticker: 'MSFT', price: 513.71, change: 2.82, changePercent: 0.55 },
+    //   { ticker: 'GOOGL', price: 193.18, change: 1.02, changePercent: 0.53 },
+    //   { ticker: 'AMZN', price: 231.44, change: -0.79, changePercent: -0.34 },
+    //   { ticker: 'TSLA', price: 316.06, change: 11.11, changePercent: 3.52 },
+    //   { ticker: 'META', price: 712.68, change: -2.14, changePercent: -0.30 },
+    //   { ticker: 'NVDA', price: 142.25, change: 3.15, changePercent: 2.27 },
+    //   { ticker: 'NFLX', price: 685.34, change: -5.22, changePercent: -0.76 }
+    // ]);
     const showBuyModal = ref(false);
     const showSellModal = ref(false);
     const sellingAsset = ref(null);
@@ -239,6 +241,18 @@ export default {
         console.error('Error loading stock holdings:', err);
       } finally {
         loading.value = false;
+      }
+    };
+
+    // NEW ADD
+    // Load real-time market watch data
+    const loadMarketStocks = async () => {
+      try {
+        const res = await stockAPI.getMarketWatch();
+        marketStocks.value = res.data.stocks;
+      } catch (err) {
+        error.value = 'Failed to load market data';
+        console.error('Error loading market stocks:', err);
       }
     };
 
@@ -371,6 +385,7 @@ export default {
 
     onMounted(() => {
       loadStockHoldings();
+      loadMarketStocks();
     });
 
     return {
@@ -541,6 +556,26 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  /* Limit the height so the list can scroll if there are too many items */
+  max-height: 300px;
+  /* Enable vertical scrolling when content exceeds the height */
+  overflow-y: auto;
+  /* Add padding to the right to prevent scroll bar from overlapping content */
+  padding-right: 4px;
+}
+
+/* Optional: Custom scrollbar style for WebKit browsers */
+.market-list::-webkit-scrollbar {
+  width: 6px; /* Scrollbar width */
+}
+
+.market-list::-webkit-scrollbar-thumb {
+  background-color: #d1d5db; /* Scrollbar thumb color */
+  border-radius: 4px;        /* Rounded scrollbar thumb */
+}
+
+.market-list::-webkit-scrollbar-track {
+  background-color: transparent; /* Background of the scrollbar track */
 }
 
 .market-item {
