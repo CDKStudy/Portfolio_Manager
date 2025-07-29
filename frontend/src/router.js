@@ -4,6 +4,7 @@ import Dashboard from './components/Dashboard.vue'
 import Stock from './components/Stock.vue'
 import Bond from './components/Bond.vue'
 import AIAgent from './components/AIAgent.vue'
+import Cash from './components/Cash.vue'
 
 const routes = [
   {
@@ -33,6 +34,11 @@ const routes = [
         path: '/ai-agent',
         name: 'ai-agent',
         component: AIAgent
+      },
+      {
+        path: '/cash',
+        name: 'cash',
+        component: Cash
       }
     ]
   }

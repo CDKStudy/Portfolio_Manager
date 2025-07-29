@@ -28,11 +28,11 @@
             <span>BOND</span>
           </router-link>
         </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link">
+        <li class="nav-item" :class="{ active: currentRoute === 'cash' }">
+          <router-link to="/cash" class="nav-link">
             <i class="nav-icon">💰</i>
             <span>CASH</span>
-          </a>
+          </router-link>
         </li>
         <li class="nav-item">
           <a href="#" class="nav-link">
