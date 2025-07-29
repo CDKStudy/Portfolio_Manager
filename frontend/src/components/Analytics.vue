@@ -330,9 +330,11 @@ export default {
   color: #ffffff;
   min-height: 100vh;
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  width: 99%;
-  max-width: 99%;
+  width: 100%;
+  max-width: 100%;
   overflow-x: hidden;
+  box-sizing: border-box;
+  position: relative;
 }
 
 .analytics-header {
