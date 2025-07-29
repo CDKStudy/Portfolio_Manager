@@ -28,7 +28,7 @@ export interface Holding {
 export interface Transaction {
   id: number;
   userId: number;
-  assetType: 'stock' | 'fund';
+  assetType: 'stock' | 'fund' | 'cash';
   ticker: string;
   action: 'buy' | 'sell';
   quantity: number;
@@ -46,7 +46,7 @@ export interface CreateHoldingRequest {
 
 export interface CreateTransactionRequest {
   userId: number;
-  assetType: 'stock' | 'fund';
+  assetType: 'stock' | 'fund' | 'cash';
   ticker: string;
   action: 'buy' | 'sell';
   quantity: number;
@@ -127,7 +127,7 @@ export class Database {
         CREATE TABLE IF NOT EXISTS transactions (
           id INT PRIMARY KEY AUTO_INCREMENT,
           user_id INT NOT NULL,
-          asset_type ENUM('stock', 'fund') NOT NULL,
+          asset_type ENUM('stock', 'fund', 'cash') NOT NULL,
           ticker VARCHAR(20) NOT NULL,
           action ENUM('buy', 'sell') NOT NULL,
           quantity DECIMAL(18,4) NOT NULL,
@@ -321,9 +321,10 @@ export class Database {
   }
 
   // Transactions operations
+  // Get transactions
   async getTransactions(userId: number, limit: number = 50): Promise<Transaction[]> {
     try {
-      const [rows] = await this.pool.execute(
+      const [rows] = await this.pool.query(
         'SELECT * FROM transactions WHERE user_id = ? ORDER BY timestamp DESC LIMIT ?',
         [userId, limit]
       );
@@ -340,6 +341,30 @@ export class Database {
       }));
     } catch (error) {
       console.error('Error fetching transactions:', error);
+      throw error;
+    }
+  }
+
+  // Get cash transactions
+  async getCashTransactions(userId: number, limit: number = 20): Promise<Transaction[]> {
+    try {
+      const [rows] = await this.pool.query(
+        'SELECT * FROM transactions WHERE user_id = ? AND asset_type = ? ORDER BY timestamp DESC LIMIT ?',
+        [userId, 'cash', limit]
+      );
+      
+      return (rows as any[]).map(row => ({
+        id: row.id,
+        userId: row.user_id,
+        assetType: row.asset_type,
+        ticker: row.ticker,
+        action: row.action,
+        quantity: parseFloat(row.quantity),
+        price: parseFloat(row.price),
+        timestamp: new Date(row.timestamp)
+      }));
+    } catch (error) {
+      console.error('Error fetching cash transactions:', error);
       throw error;
     }
   }
