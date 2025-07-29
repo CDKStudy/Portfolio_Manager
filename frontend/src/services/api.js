@@ -117,4 +117,16 @@ export const fundAPI = {
   searchFunds: (query) => portfolioAPI.searchStocks(query)
 }
 
+// AI-specific API functions
+export const aiAPI = {
+  // Chat with AI
+  chat: (message, portfolioContext = null, userId = DEFAULT_USER_ID) => {
+    return api.post('/portfolio/ai/chat', {
+      message,
+      userId,
+      portfolioContext
+    })
+  }
+}
+
 export default api 

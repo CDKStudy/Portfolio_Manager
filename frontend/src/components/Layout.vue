@@ -46,11 +46,11 @@
             <span>Transactions</span>
           </a>
         </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link">
-            <i class="nav-icon">📋</i>
-            <span>Reports</span>
-          </a>
+        <li class="nav-item" :class="{ active: currentRoute === 'ai-agent' }">
+          <router-link to="/ai-agent" class="nav-link">
+            <i class="nav-icon">🤖</i>
+            <span>AI Agent</span>
+          </router-link>
         </li>
         <li class="nav-item">
           <a href="#" class="nav-link">
