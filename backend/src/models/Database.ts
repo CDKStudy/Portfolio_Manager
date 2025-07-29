@@ -228,7 +228,7 @@ export class Database {
         [userId]
       );
       
-      return (rows as any[]).map(row => ({
+             return (rows as any[]).map(row => ({
         id: row.id,
         type: row.type,
         ticker: row.ticker,
@@ -256,7 +256,7 @@ export class Database {
       }
 
       const row = rowArray[0];
-      return {
+             return {
         id: row.id,
         type: row.type,
         ticker: row.ticker,
@@ -403,7 +403,7 @@ export class Database {
         const newTotalCost = (parseFloat(existing.buy_price) * parseFloat(existing.quantity)) + totalCost;
         const newAveragePrice = newTotalCost / newQuantity;
 
-        await this.pool.execute(
+      await this.pool.execute(
           'UPDATE holdings SET quantity = ?, buy_price = ? WHERE id = ?',
           [newQuantity, newAveragePrice, existing.id]
         );

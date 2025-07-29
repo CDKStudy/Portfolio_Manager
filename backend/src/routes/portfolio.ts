@@ -113,8 +113,8 @@ router.post('/buy', async (req: Request, res: Response) => {
     let marketPrice = price;
     if (!marketPrice) {
       const priceData = await financialService.getStockPrice(ticker);
-      if (!priceData) {
-        return res.status(400).json({ 
+    if (!priceData) {
+      return res.status(400).json({ 
           error: `Price data not available for ticker: ${ticker}` 
         });
       }
@@ -140,8 +140,8 @@ router.post('/buy', async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Internal server error' });
       }
     } else {
-      res.status(500).json({ error: 'Internal server error' });
-    }
+    res.status(500).json({ error: 'Internal server error' });
+  }
   }
 });
 
@@ -194,7 +194,7 @@ router.post('/sell', async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Internal server error' });
       }
     } else {
-      res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error' });
     }
   }
 });
@@ -246,7 +246,7 @@ router.get('/meta/search', async (req: Request, res: Response) => {
     if (!query || typeof query !== 'string') {
       return res.status(400).json({ error: 'Query parameter is required' });
     }
-    
+
     const results = await financialService.searchStocks(query);
     res.json({ results });
   } catch (error) {
@@ -296,8 +296,8 @@ router.post('/user', async (req: Request, res: Response) => {
     res.status(201).json(user);
   } catch (error) {
     console.error('Error creating user:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+      res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 // POST /api/portfolio/ai/chat - AI chat endpoint

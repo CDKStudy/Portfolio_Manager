@@ -109,6 +109,7 @@ export default {
         dashboard: 'Dashboard',
         stock: 'Stock Trading',
         bond: 'Fund Trading',
+        'ai-agent': 'AI Agent',
         cash: 'Cash Management',
         analytics: 'Analytics',
         transactions: 'Transactions',

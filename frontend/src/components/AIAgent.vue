@@ -1,17 +1,16 @@
 <template>
   <div class="ai-agent">
-    <div class="ai-header">
-      <div class="ai-title">
-        <i class="ai-icon">🤖</i>
-        <h2>AI Portfolio Assistant</h2>
-      </div>
-      <div class="ai-status" :class="{ online: isConnected }">
-        <span class="status-dot"></span>
-        {{ isConnected ? 'Connected' : 'Connecting...' }}
-      </div>
-    </div>
-
     <div class="chat-container">
+      <div class="chat-header">
+        <div class="chat-title">
+          <span class="chat-icon">🤖</span>
+          <span>AI Portfolio Assistant</span>
+        </div>
+        <div class="ai-status" :class="{ online: isConnected }">
+          <span class="status-dot"></span>
+          {{ isConnected ? 'Connected' : 'Connecting...' }}
+        </div>
+      </div>
       <div class="chat-messages" ref="messagesContainer">
         <div 
           v-for="(message, index) in messages" 
@@ -50,7 +49,7 @@
             @keydown.enter.prevent="sendMessage"
             placeholder="Ask me about your portfolio, investment strategies, or market analysis..."
             class="chat-input"
-            rows="3"
+            rows="2"
             :disabled="isLoading"
           ></textarea>
           <button 
@@ -62,17 +61,7 @@
           </button>
         </div>
         
-        <div class="quick-actions">
-          <button 
-            v-for="suggestion in quickSuggestions" 
-            :key="suggestion"
-            @click="sendQuickMessage(suggestion)"
-            class="quick-action-btn"
-            :disabled="isLoading"
-          >
-            {{ suggestion }}
-          </button>
-        </div>
+
       </div>
     </div>
 
@@ -121,13 +110,7 @@ export default {
     const messagesContainer = ref(null)
     const portfolioSummary = ref(null)
 
-    const quickSuggestions = [
-      'Analyze my portfolio performance',
-      'What should I invest in?',
-      'How is my risk exposure?',
-      'Market trends this week',
-      'Portfolio rebalancing advice'
-    ]
+
 
     const formatTime = (timestamp) => {
       return new Date(timestamp).toLocaleTimeString()
@@ -158,10 +141,7 @@ export default {
       scrollToBottom()
     }
 
-    const sendQuickMessage = (suggestion) => {
-      userInput.value = suggestion
-      sendMessage()
-    }
+
 
     const callDouBaoAPI = async (message) => {
       try {
@@ -232,11 +212,9 @@ export default {
       isConnected,
       messagesContainer,
       portfolioSummary,
-      quickSuggestions,
       formatTime,
       formatMessage,
-      sendMessage,
-      sendQuickMessage
+      sendMessage
     }
   }
 }
@@ -246,38 +224,32 @@ export default {
 .ai-agent {
   display: flex;
   height: calc(100vh - 120px);
-  gap: 20px;
-  padding: 20px;
+  gap: 24px;
+  padding: 24px;
+  width: 100%;
+  background: #f1f5f9;
 }
 
-.ai-header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+.chat-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
+  padding: 20px 24px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border-radius: 12px 12px 0 0;
 }
 
-.ai-title {
+.chat-title {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.ai-title h2 {
-  margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: 600;
 }
 
-.ai-icon {
-  font-size: 1.8rem;
+.chat-icon {
+  font-size: 1.5rem;
 }
 
 .ai-status {
@@ -306,7 +278,7 @@ export default {
 }
 
 .chat-container {
-  flex: 1;
+  flex: 4;
   display: flex;
   flex-direction: column;
   background: white;
@@ -314,15 +286,17 @@ export default {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   position: relative;
+  height: calc(100vh - 140px);
 }
 
 .chat-messages {
   flex: 1;
-  padding: 80px 20px 20px;
+  padding: 24px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  background: #f8fafc;
 }
 
 .message {
@@ -426,7 +400,7 @@ export default {
 }
 
 .chat-input-container {
-  padding: 20px;
+  padding: 16px 20px;
   border-top: 1px solid #e9ecef;
   background: white;
 }
@@ -446,6 +420,8 @@ export default {
   font-family: inherit;
   font-size: 0.95rem;
   transition: border-color 0.3s ease;
+  min-height: 40px;
+  max-height: 100px;
 }
 
 .chat-input:focus {
@@ -485,36 +461,11 @@ export default {
   font-size: 1.2rem;
 }
 
-.quick-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
 
-.quick-action-btn {
-  padding: 8px 16px;
-  border: 1px solid #e9ecef;
-  border-radius: 20px;
-  background: white;
-  color: #495057;
-  cursor: pointer;
-  font-size: 0.85rem;
-  transition: all 0.2s ease;
-}
-
-.quick-action-btn:hover:not(:disabled) {
-  background: #667eea;
-  color: white;
-  border-color: #667eea;
-}
-
-.quick-action-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 
 .ai-sidebar {
-  width: 280px;
+  width: 260px;
+  flex: 1;
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
