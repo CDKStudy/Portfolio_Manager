@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Layout from './components/Layout.vue'
 import Dashboard from './components/Dashboard.vue'
 import Stock from './components/Stock.vue'
-import Bond from './components/Bond.vue'
+import Fund from './components/Fund.vue'
 import AIAgent from './components/AIAgent.vue'
 import Cash from './components/Cash.vue'
 
@@ -26,9 +26,9 @@ const routes = [
         component: Stock
       },
       {
-        path: '/bond',
-        name: 'bond',
-        component: Bond
+        path: '/fund',
+        name: 'fund',
+        component: Fund
       },
       {
         path: '/ai-agent',

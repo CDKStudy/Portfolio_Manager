@@ -30,7 +30,7 @@
         </div>
       </div>
 
-      <div class="summary-card bonds">
+      <div class="summary-card funds">
         <div class="card-header">
           <span class="card-title">Funds</span>
           <i class="card-icon">📊</i>

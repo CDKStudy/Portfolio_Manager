@@ -1,5 +1,5 @@
 <template>
-  <div class="bond-page">
+  <div class="fund-page">
     <!-- Fund Management -->
     <div class="asset-management">
       <div class="asset-header">
@@ -197,7 +197,7 @@ import { ref, onMounted } from 'vue';
 import { fundAPI, portfolioAPI } from '../services/api';
 
 export default {
-  name: 'Bond',
+  name: 'Fund',
   setup() {
     const loading = ref(false);
     const error = ref('');
@@ -396,7 +396,7 @@ export default {
 </script>
 
 <style scoped>
-.bond-page {
+.fund-page {
   padding: 24px;
   background: #f9fafb;
   min-height: 100vh;
@@ -794,7 +794,7 @@ export default {
 
 /* Responsive Design */
 @media (max-width: 1024px) {
-  .bond-page {
+  .fund-page {
     grid-template-columns: 1fr;
     gap: 20px;
   }
@@ -805,7 +805,7 @@ export default {
 }
 
 @media (max-width: 768px) {
-  .bond-page {
+  .fund-page {
     padding: 16px;
   }
   

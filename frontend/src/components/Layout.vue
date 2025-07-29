@@ -22,10 +22,10 @@
             <span>STOCK</span>
           </router-link>
         </li>
-        <li class="nav-item" :class="{ active: currentRoute === 'bond' }">
-          <router-link to="/bond" class="nav-link">
+        <li class="nav-item" :class="{ active: currentRoute === 'fund' }">
+          <router-link to="/fund" class="nav-link">
             <i class="nav-icon">🏛️</i>
-            <span>BOND</span>
+            <span>FUND</span>
           </router-link>
         </li>
         <li class="nav-item" :class="{ active: currentRoute === 'cash' }">
@@ -108,7 +108,7 @@ export default {
       const routeNames = {
         dashboard: 'Dashboard',
         stock: 'Stock Trading',
-        bond: 'Fund Trading',
+        fund: 'Fund Trading',
         'ai-agent': 'AI Agent',
         cash: 'Cash Management',
         analytics: 'Analytics',
