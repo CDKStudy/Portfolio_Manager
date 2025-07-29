@@ -17,7 +17,7 @@ CREATE TABLE users (
 -- Holdings table (portfolio_holdings)
 CREATE TABLE holdings (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    type ENUM('stock', 'fund') NOT NULL,
+    type ENUM('stock', 'fund', 'cash') NOT NULL,
     ticker VARCHAR(20) NOT NULL,
     quantity DECIMAL(18,4) NOT NULL,
     buy_price DECIMAL(18,4) NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE holdings (
 CREATE TABLE transactions (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
-    asset_type ENUM('stock', 'fund') NOT NULL,
+    asset_type ENUM('stock', 'fund', 'cash') NOT NULL,
     ticker VARCHAR(20) NOT NULL,
     action ENUM('buy', 'sell') NOT NULL,
     quantity DECIMAL(18,4) NOT NULL,

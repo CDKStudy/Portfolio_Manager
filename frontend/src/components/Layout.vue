@@ -40,11 +40,11 @@
             <span>Analytics</span>
           </a>
         </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link">
+        <li class="nav-item" :class="{ active: currentRoute === 'transactions' }">
+          <router-link to="/transactions" class="nav-link">
             <i class="nav-icon">📄</i>
             <span>Transactions</span>
-          </a>
+          </router-link>
         </li>
         <li class="nav-item" :class="{ active: currentRoute === 'ai-agent' }">
           <router-link to="/ai-agent" class="nav-link">

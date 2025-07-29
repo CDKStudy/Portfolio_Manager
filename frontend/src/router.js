@@ -5,6 +5,7 @@ import Stock from './components/Stock.vue'
 import Fund from './components/Fund.vue'
 import AIAgent from './components/AIAgent.vue'
 import Cash from './components/Cash.vue'
+import Transaction from './components/Transaction.vue'
 
 const routes = [
   {
@@ -39,6 +40,11 @@ const routes = [
         path: '/cash',
         name: 'cash',
         component: Cash
+      },
+      {
+        path: '/transactions',
+        name: 'transactions',
+        component: Transaction
       }
     ]
   }

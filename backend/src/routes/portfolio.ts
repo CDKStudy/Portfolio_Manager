@@ -23,7 +23,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     // Get portfolio summary
     const summary = await db.getPortfolioSummary(userId);
-    
+    console.log('Portfolio Summary:', summary);
     res.json({
       totalItems: summary.totalHoldings,
       totalValue: summary.totalValue,
