@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 import { Database } from '../models/Database';
-import { FinancialDataService } from '../services/FinancialDataService';
 import AIService from '../services/AIService';
+import { FinancialDataService } from '../services/FinancialDataService';
 
 const router = Router();
 const db = new Database();
@@ -100,9 +100,8 @@ router.post('/buy', async (req: Request, res: Response) => {
       price?: number;
       type?: 'stock' | 'fund';
     } = req.body;
-
     const userId = parseInt(req.query.userId as string) || DEFAULT_USER_ID;
-
+    console.log('Buying asset:', { ticker, quantity, price, type, userId });
     if (!ticker || !quantity || quantity <= 0) {
       return res.status(400).json({ 
         error: 'Ticker and positive quantity are required' 
@@ -110,12 +109,13 @@ router.post('/buy', async (req: Request, res: Response) => {
     }
 
     // Get current market price if not provided
+    // Judge whether fund or stock
     let marketPrice = price;
     if (!marketPrice) {
       const priceData = await financialService.getStockPrice(ticker);
     if (!priceData) {
       return res.status(400).json({ 
-          error: `Price data not available for ticker: ${ticker}` 
+          error: `Price data not available for ticker: ${ticker}`
         });
       }
       marketPrice = priceData.price;
