@@ -3,6 +3,7 @@ import Layout from './components/Layout.vue'
 import Dashboard from './components/Dashboard.vue'
 import Stock from './components/Stock.vue'
 import Bond from './components/Bond.vue'
+import Cash from './components/Cash.vue'
 
 const routes = [
   {
@@ -27,6 +28,11 @@ const routes = [
         path: '/bond',
         name: 'bond',
         component: Bond
+      },
+      {
+        path: '/cash',
+        name: 'cash',
+        component: Cash
       }
     ]
   }

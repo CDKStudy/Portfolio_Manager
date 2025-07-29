@@ -299,4 +299,129 @@ router.post('/user', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/portfolio/cash - Get user cash balance
+router.get('/cash', async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.query.userId as string) || DEFAULT_USER_ID;
+    
+    const user = await db.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ 
+      userId: user.id,
+      cash: user.cash,
+      netWorth: user.netWorth
+    });
+  } catch (error) {
+    console.error('Error fetching cash balance:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/portfolio/cash/deposit - Add cash to account
+router.post('/cash/deposit', async (req: Request, res: Response) => {
+  try {
+    const { amount }: { amount: number } = req.body;
+    const userId = parseInt(req.query.userId as string) || DEFAULT_USER_ID;
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Amount must be greater than 0' });
+    }
+
+    const user = await db.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const newCash = user.cash + amount;
+    await db.updateUserCash(userId, newCash);
+
+    // Record cash deposit transaction
+    await db.createTransaction({
+      userId,
+      assetType: 'cash',
+      ticker: 'CASH',
+      action: 'buy',
+      quantity: amount,
+      price: 1
+    });
+
+    // Update net worth
+    const summary = await db.getPortfolioSummary(userId);
+    await db.updateUserNetWorth(userId, summary.netWorth);
+
+    res.json({
+      message: `Successfully deposited $${amount}`,
+      newBalance: newCash,
+      netWorth: summary.netWorth
+    });
+  } catch (error) {
+    console.error('Error depositing cash:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/portfolio/cash/withdraw - Withdraw cash from account
+router.post('/cash/withdraw', async (req: Request, res: Response) => {
+  try {
+    const { amount }: { amount: number } = req.body;
+    const userId = parseInt(req.query.userId as string) || DEFAULT_USER_ID;
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Amount must be greater than 0' });
+    }
+
+    const user = await db.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (user.cash < amount) {
+      return res.status(400).json({ error: 'Insufficient cash balance' });
+    }
+
+    const newCash = user.cash - amount;
+    await db.updateUserCash(userId, newCash);
+
+    // Record cash withdrawal transaction
+    await db.createTransaction({
+      userId,
+      assetType: 'cash',
+      ticker: 'CASH',
+      action: 'sell',
+      quantity: amount,
+      price: 1
+    });
+
+    // Update net worth
+    const summary = await db.getPortfolioSummary(userId);
+    await db.updateUserNetWorth(userId, summary.netWorth);
+
+    res.json({
+      message: `Successfully withdrew $${amount}`,
+      newBalance: newCash,
+      netWorth: summary.netWorth
+    });
+  } catch (error) {
+    console.error('Error withdrawing cash:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/portfolio/cash/transactions - Get cash transactions
+router.get('/cash/transactions', async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.query.userId as string) || DEFAULT_USER_ID;
+    const limit = parseInt(req.query.limit as string) || 20;
+    
+    const transactions = await db.getCashTransactions(userId, limit);
+    res.json({ transactions });
+  } catch (error) {
+    console.error('Error fetching cash transactions:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router; 
