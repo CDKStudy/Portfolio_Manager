@@ -83,6 +83,28 @@
       </div>
     </div>
 
+    <!-- Predict -->
+    <div class="prediction-section">
+      <h3>Stock Predictions</h3>
+      <div v-if="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading predictions...</p>
+      </div>
+      <div v-else-if="predictions.length === 0" class="empty-state">
+        <p>No predictions available.</p>
+      </div>
+      <div v-else class="prediction-list">
+        <div 
+          v-for="prediction in predictions" 
+          :key="prediction.ticker" 
+          class="prediction-item"
+        >
+          <div class="prediction-symbol">{{ prediction.ticker }}</div>
+          <div class="prediction-price">Predicted Price: ${{ formatCurrency(prediction.predictedPrice) }}</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Buy Stock Modal -->
     <div v-if="showBuyModal" class="modal-overlay" @click="showBuyModal = false">
       <div class="modal" @click.stop>
@@ -195,6 +217,7 @@
 <script>
 import { onMounted, ref } from 'vue';
 import { portfolioAPI, stockAPI } from '../services/api';
+import axios from 'axios';
 
 export default {
   name: 'Stock',
@@ -204,6 +227,7 @@ export default {
     const stockHoldings = ref([]);
     //Empty array for market stocks
     const marketStocks = ref([]);
+    const predictions = ref([]);  // prediction data
     // const marketStocks = ref([
     //   { ticker: 'AAPL', price: 213.88, change: 1.28, changePercent: 0.06 },
     //   { ticker: 'MSFT', price: 513.71, change: 2.82, changePercent: 0.55 },
@@ -239,6 +263,19 @@ export default {
       } catch (err) {
         error.value = 'Failed to load stock holdings';
         console.error('Error loading stock holdings:', err);
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    // 加载预测数据
+    const loadPredictions = async () => {
+      loading.value = true;
+      try {
+        const response = await axios.get('/api/predict');  // 请求后端的预测数据
+        predictions.value = response.data.predictions || [];  // 将预测数据保存到 predictions
+      } catch (err) {
+        console.error('Error fetching predictions:', err);
       } finally {
         loading.value = false;
       }
@@ -386,6 +423,7 @@ export default {
     onMounted(() => {
       loadStockHoldings();
       loadMarketStocks();
+      loadPredictions();
     });
 
     return {
@@ -403,8 +441,9 @@ export default {
       sellStockConfirm,
       deleteHolding,
       selectStock,
-      formatCurrency,
-      formatPercent
+      formatPercent,
+      predictions,
+      formatCurrency
     };
   }
 };
@@ -823,6 +862,32 @@ export default {
   align-items: center;
   gap: 12px;
   z-index: 1000;
+}
+
+.prediction-section {
+  margin-top: 32px;
+}
+
+.prediction-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.prediction-item {
+  background: #f9fafb;
+  padding: 16px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.prediction-symbol {
+  font-weight: 600;
+}
+
+.prediction-price {
+  font-size: 16px;
 }
 
 /* Responsive Design */
