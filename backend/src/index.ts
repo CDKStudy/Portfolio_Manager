@@ -1,6 +1,6 @@
+import cors from 'cors';
 import 'dotenv/config';
 import express from 'express';
-import cors from 'cors';
 import { Database } from './models/Database';
 import portfolioRoutes from './routes/portfolio';
 
@@ -36,18 +36,20 @@ app.get('/health', async (req, res) => {
   }
 });
 
+// 废弃代码
 // Database stats endpoint
-app.get('/api/stats', async (req, res) => {
-  try {
-    const stats = await db.getStats();
-    res.json(stats);
-  } catch (error) {
-    res.status(500).json({ 
-      error: 'Failed to fetch statistics',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
+// app.get('/api/stats', async (req, res) => {
+//   try {
+//     const stats = await db.getStats();
+//     res.json(stats);
+//   } catch (error) {
+//     res.status(500).json({ 
+//       error: 'Failed to fetch statistics',
+//       message: error instanceof Error ? error.message : 'Unknown error'
+//     });
+//   }
+// });
+
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
