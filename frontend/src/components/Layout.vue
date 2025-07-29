@@ -34,11 +34,11 @@
             <span>CASH</span>
           </router-link>
         </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link">
+        <li class="nav-item" :class="{ active: currentRoute === 'analytics' }">
+          <router-link to="/analytics" class="nav-link">
             <i class="nav-icon">📊</i>
             <span>Analytics</span>
-          </a>
+          </router-link>
         </li>
         <li class="nav-item" :class="{ active: currentRoute === 'transactions' }">
           <router-link to="/transactions" class="nav-link">

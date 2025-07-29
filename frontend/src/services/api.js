@@ -71,7 +71,10 @@ export const portfolioAPI = {
   withdrawCash: (amount, userId = DEFAULT_USER_ID) => api.post('/portfolio/cash/withdraw', { amount }, { params: { userId } }),
 
   // Get cash transactions
-  getCashTransactions: (userId = DEFAULT_USER_ID, limit = 20) => api.get('/portfolio/cash/transactions', { params: { userId, limit } })
+  getCashTransactions: (userId = DEFAULT_USER_ID, limit = 20) => api.get('/portfolio/cash/transactions', { params: { userId, limit } }),
+
+  // Get asset allocation data for analytics
+  getAssetAllocation: (userId = DEFAULT_USER_ID) => api.get('/portfolio/analytics/asset-allocation', { params: { userId } })
 }
 
 // Stock-specific API functions
