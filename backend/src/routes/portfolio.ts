@@ -484,4 +484,83 @@ router.get('/cash/transactions', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/portfolio/analytics/asset-allocation - Get asset allocation data
+router.get('/analytics/asset-allocation', async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.query.userId as string) || DEFAULT_USER_ID;
+    
+    // Get user info
+    const user = await db.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Get holdings
+    const holdings = await db.getHoldings(userId);
+    
+    // Calculate asset allocation
+    const cashValue = user.cash;
+    let stocksValue = 0;
+    let fundsValue = 0;
+    
+    const stockHoldings = [];
+    const fundHoldings = [];
+    
+    for (const holding of holdings) {
+      const priceData = await financialService.getStockPrice(holding.ticker);
+      const currentPrice = priceData ? priceData.price : holding.buyPrice;
+      const totalValue = holding.quantity * currentPrice;
+      
+      if (holding.type === 'stock') {
+        stocksValue += totalValue;
+        stockHoldings.push({
+          ticker: holding.ticker,
+          value: totalValue,
+          quantity: holding.quantity,
+          percentage: 0 // Will be calculated later
+        });
+      } else if (holding.type === 'fund') {
+        fundsValue += totalValue;
+        fundHoldings.push({
+          ticker: holding.ticker,
+          value: totalValue,
+          quantity: holding.quantity,
+          percentage: 0 // Will be calculated later
+        });
+      }
+    }
+    
+    const totalValue = cashValue + stocksValue + fundsValue;
+    
+    // Calculate percentages
+    const cashPercentage = totalValue > 0 ? (cashValue / totalValue) * 100 : 0;
+    const stocksPercentage = totalValue > 0 ? (stocksValue / totalValue) * 100 : 0;
+    const fundsPercentage = totalValue > 0 ? (fundsValue / totalValue) * 100 : 0;
+    
+    // Calculate individual stock percentages
+    stockHoldings.forEach(holding => {
+      holding.percentage = stocksValue > 0 ? (holding.value / stocksValue) * 100 : 0;
+    });
+    
+    // Calculate individual fund percentages
+    fundHoldings.forEach(holding => {
+      holding.percentage = fundsValue > 0 ? (holding.value / fundsValue) * 100 : 0;
+    });
+    
+    res.json({
+      assetAllocation: {
+        cash: { value: cashValue, percentage: cashPercentage },
+        stocks: { value: stocksValue, percentage: stocksPercentage },
+        funds: { value: fundsValue, percentage: fundsPercentage }
+      },
+      stockHoldings,
+      fundHoldings,
+      totalValue
+    });
+  } catch (error) {
+    console.error('Error fetching asset allocation:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router; 
