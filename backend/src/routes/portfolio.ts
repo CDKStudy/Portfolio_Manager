@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 import { Database } from '../models/Database';
-import { FinancialDataService } from '../services/FinancialDataService';
 import AIService from '../services/AIService';
+import { FinancialDataService } from '../services/FinancialDataService';
 
 const router = Router();
 const db = new Database();
@@ -23,7 +23,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     // Get portfolio summary
     const summary = await db.getPortfolioSummary(userId);
-    
+    console.log('Portfolio Summary:', summary);
     res.json({
       totalItems: summary.totalHoldings,
       totalValue: summary.totalValue,
