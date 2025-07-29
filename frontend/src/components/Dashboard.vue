@@ -8,11 +8,11 @@
           <i class="card-icon">💰</i>
         </div>
         <div class="card-content">
-          <div class="card-value">${{ formatCurrency(portfolio.totalValue || 45231.89) }}</div>
-          <div class="card-change positive">
+          <div class="card-value">${{ formatCurrency(portfolio.netWorth) }}</div>
+          <!-- <div class="card-change positive">
             <span class="change-icon">📈</span>
             <span>+2.5% from last month</span>
-          </div>
+          </div> -->
         </div>
       </div>
 
@@ -22,11 +22,11 @@
           <i class="card-icon">📊</i>
         </div>
         <div class="card-content">
-          <div class="card-value">${{ formatCurrency(stockHoldings.totalValue || 28459.00) }}</div>
-          <div class="card-change positive">
+          <div class="card-value">${{ formatCurrency(stockHoldings.totalValue) }}</div>
+          <!-- <div class="card-change positive">
             <span class="change-icon">📈</span>
             <span>+4.3% from last month</span>
-          </div>
+          </div> -->
         </div>
       </div>
 
@@ -36,11 +36,11 @@
           <i class="card-icon">📊</i>
         </div>
         <div class="card-content">
-          <div class="card-value">${{ formatCurrency(fundHoldings.totalValue || 12500.00) }}</div>
-          <div class="card-change negative">
+          <div class="card-value">${{ formatCurrency(fundHoldings.totalValue) }}</div>
+          <!-- <div class="card-change negative">
             <span class="change-icon">📉</span>
             <span>-0.8% from last month</span>
-          </div>
+          </div> -->
         </div>
       </div>
 
@@ -50,10 +50,10 @@
           <i class="card-icon">💰</i>
         </div>
         <div class="card-content">
-          <div class="card-value">${{ formatCurrency(userInfo.cash || 4272.89) }}</div>
-          <div class="card-change neutral">
+          <div class="card-value">${{ formatCurrency(userInfo.cash) }}</div>
+          <!-- <div class="card-change neutral">
             <span>+0.1% interest rate</span>
-          </div>
+          </div> -->
         </div>
       </div>
     </section>
@@ -115,7 +115,7 @@
         <h3>Market Watch</h3>
         <div class="market-list">
           <div 
-            v-for="stock in marketStocks.slice(0, 6)" 
+            v-for="stock in marketStocks" 
             :key="stock.ticker"
             class="market-item"
           >
@@ -138,19 +138,19 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
-import { Line } from 'vue-chartjs';
 import {
-  Chart as ChartJS,
   CategoryScale,
+  Chart as ChartJS,
+  Legend,
   LinearScale,
-  PointElement,
   LineElement,
+  PointElement,
   Title,
-  Tooltip,
-  Legend
+  Tooltip
 } from 'chart.js';
-import { portfolioAPI } from '../services/api';
+import { onMounted, ref } from 'vue';
+import { Line } from 'vue-chartjs';
+import { portfolioAPI, stockAPI } from '../services/api';
 
 // 注册Chart.js组件
 ChartJS.register(
@@ -179,14 +179,16 @@ export default {
     });
     const loading = ref(false);
     const error = ref('');
-    const marketStocks = ref([
-      { ticker: 'AAPL', price: 213.88, change: 1.28, changePercent: 0.06 },
-      { ticker: 'MSFT', price: 513.71, change: 2.82, changePercent: 0.55 },
-      { ticker: 'GOOGL', price: 193.18, change: 1.02, changePercent: 0.53 },
-      { ticker: 'AMZN', price: 231.44, change: -0.79, changePercent: -0.34 },
-      { ticker: 'TSLA', price: 316.06, change: 11.11, changePercent: 3.52 },
-      { ticker: 'META', price: 712.68, change: -2.14, changePercent: -0.30 }
-    ]);
+    //Empty array for market stocks
+    const marketStocks = ref([]);
+    // const marketStocks = ref([
+    //   { ticker: 'AAPL', price: 213.88, change: 1.28, changePercent: 0.06 },
+    //   { ticker: 'MSFT', price: 513.71, change: 2.82, changePercent: 0.55 },
+    //   { ticker: 'GOOGL', price: 193.18, change: 1.02, changePercent: 0.53 },
+    //   { ticker: 'AMZN', price: 231.44, change: -0.79, changePercent: -0.34 },
+    //   { ticker: 'TSLA', price: 316.06, change: 11.11, changePercent: 3.52 },
+    //   { ticker: 'META', price: 712.68, change: -2.14, changePercent: -0.30 }
+    // ]);
     const userInfo = ref({
       id: 1,
       username: 'john_doe',
@@ -314,6 +316,18 @@ export default {
       }
     };
 
+    // Load real-time market watch data
+    const loadMarketStocks = async () => {
+      try {
+        const res = await stockAPI.getMarketWatch();
+        marketStocks.value = res.data.stocks;
+
+      } catch (err) {
+        error.value = 'Failed to load market data';
+        console.error('Error loading market stocks:', err);
+      }
+    };
+
     const formatCurrency = (value) => {
       return new Intl.NumberFormat('en-US', {
         minimumFractionDigits: 2,
@@ -330,8 +344,11 @@ export default {
 
     onMounted(() => {
       loadPortfolio();
+
+      loadMarketStocks();
     });
 
+  
     return {
       portfolio,
       loading,
@@ -511,9 +528,12 @@ export default {
   margin-top: 8px;
 }
 
-.holdings-list {
-  space-y: 12px;
+.market-list {
+  max-height: 300px; 
+  overflow-y: auto;
+  padding-right: 4px; 
 }
+
 
 .holding-item {
   display: flex;

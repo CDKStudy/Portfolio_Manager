@@ -244,7 +244,6 @@ export default {
       }
     };
 
-    // NEW ADD
     // Load real-time market watch data
     const loadMarketStocks = async () => {
       try {
