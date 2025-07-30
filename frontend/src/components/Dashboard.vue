@@ -476,7 +476,7 @@ export default {
 /* Holdings Overview */
 .holdings-overview {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 24px;
 }
 
@@ -528,11 +528,7 @@ export default {
   margin-top: 8px;
 }
 
-.market-list {
-  max-height: 300px; 
-  overflow-y: auto;
-  padding-right: 4px; 
-}
+
 
 
 .holding-item {
@@ -614,6 +610,8 @@ export default {
   border-radius: 16px;
   padding: 24px;
   border: 1px solid #e5e7eb;
+  height: fit-content;
+  min-height: 400px;
 }
 
 .market-watch-card h3 {
@@ -624,17 +622,22 @@ export default {
 }
 
 .market-list {
-  space-y: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px; 
+  overflow-y: auto;
+  padding-right: 4px; 
 }
 
 .market-item {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   align-items: center;
   padding: 12px;
   border-radius: 8px;
   transition: background-color 0.2s ease;
-  margin-bottom: 12px;
+  gap: 8px;
 }
 
 .market-item:hover {
@@ -644,16 +647,19 @@ export default {
 .market-symbol {
   font-weight: 600;
   color: #1f2937;
+  text-align: left;
 }
 
 .market-price {
   font-weight: 500;
   color: #1f2937;
+  text-align: center;
 }
 
 .market-change {
   font-size: 14px;
   font-weight: 500;
+  text-align: right;
 }
 
 .market-change.positive {
