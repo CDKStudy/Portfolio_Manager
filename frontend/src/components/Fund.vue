@@ -1,7 +1,7 @@
 <template>
   <div class="fund-page">
     <!-- Fund Management -->
-    <div class="asset-management">
+    <div class="asset-management" ref="fundTradingCard">
       <div class="asset-header">
         <h2>Fund Trading</h2>
         <button @click="showBuyModal = true" class="btn btn-primary">
@@ -64,7 +64,7 @@
 
     <!-- Fund Market Watch -->
     <div class="market-watch-section">
-      <div class="market-watch-card">
+      <div class="market-watch-card" ref="marketWatchCard">
         <h3>Fund Market Watch</h3>
         <div class="market-list">
           <div 
@@ -193,7 +193,7 @@
 </template>
 
 <script>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, nextTick, watch } from 'vue';
 import { fundAPI, portfolioAPI } from '../services/api';
 
 export default {
@@ -227,6 +227,18 @@ export default {
       quantity: 1,
       price: null
     });
+
+    // Refs for height synchronization
+    const fundTradingCard = ref(null);
+    const marketWatchCard = ref(null);
+
+    // Function to sync market watch height with fund trading card
+    const syncMarketWatchHeight = () => {
+      if (fundTradingCard.value && marketWatchCard.value) {
+        const fundHeight = fundTradingCard.value.offsetHeight;
+        marketWatchCard.value.style.height = `${fundHeight}px`;
+      }
+    };
 
     // Load fund holdings
     const loadFundHoldings = async () => {
@@ -383,9 +395,20 @@ export default {
 
     onMounted(() => {
       loadFundHoldings();
-
       loadMarketFund();
+
+      // Sync market watch height with fund trading card
+      nextTick(() => {
+        syncMarketWatchHeight();
+      });
     });
+
+    // Watch for changes in fundHoldings to resync height
+    watch(fundHoldings, () => {
+      nextTick(() => {
+        syncMarketWatchHeight();
+      });
+    }, { deep: true });
 
     return {
       loading,
@@ -403,7 +426,10 @@ export default {
       deleteHolding,
       selectFund,
       formatCurrency,
-      formatPercent
+      formatPercent,
+      fundTradingCard,
+      marketWatchCard,
+      syncMarketWatchHeight
     };
   }
 };
@@ -417,6 +443,7 @@ export default {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 24px;
+  align-items: start;
 }
 
 /* Asset Management */
@@ -541,7 +568,8 @@ export default {
   border-radius: 16px;
   padding: 24px;
   border: 1px solid #e5e7eb;
-  height: fit-content;
+  display: flex;
+  flex-direction: column;
 }
 
 .market-watch-card h3 {
@@ -555,11 +583,9 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 12px;
-
-  /* Make it scrollable */
-  max-height: 400px;     /* Adjust height as needed */
+  flex: 1;
   overflow-y: auto;
-  padding-right: 4px;    /* Some space for scrollbar */
+  padding-right: 4px;
 }
 
 /* Optional: Customize scrollbar (for modern browsers) */

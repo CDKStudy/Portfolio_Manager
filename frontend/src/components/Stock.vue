@@ -1,82 +1,88 @@
 <template>
   <div class="stock-page">
-    <!-- Stock Management -->
-    <div class="asset-management">
-      <div class="asset-header">
-        <h2>Stock Trading</h2>
-        <button @click="showBuyModal = true" class="btn btn-primary">
-          + Add Stock Record
-        </button>
-      </div>
-      
-      <div v-if="loading" class="loading-state">
-        <div class="spinner"></div>
-        <p>Loading stocks...</p>
-      </div>
-      <div v-else-if="stockHoldings.length === 0" class="empty-state">
-        <div class="empty-icon">📈</div>
-        <p>No stocks in your portfolio</p>
-        <p class="empty-subtitle">Start by buying your first stock!</p>
-      </div>
-      <div v-else class="holdings-grid">
-        <div
-          v-for="holding in stockHoldings"
-          :key="holding.id"
-          class="holding-card"
-        >
-          <div class="holding-header">
-            <div class="stock-info">
-              <h4>{{ holding.ticker }}</h4>
-              <span class="stock-volume">{{ holding.quantity }} shares</span>
-            </div>
-            <div class="holding-actions">
-              <button @click="sellAsset(holding)" class="btn btn-outline btn-sm">
-                Sell
-              </button>
-              <!-- <button @click="deleteHolding(holding.id)" class="btn btn-danger btn-sm">
-                ×
-              </button> -->
-            </div>
-          </div>
-          
-          <div class="holding-details">
-            <div class="price-row">
-              <span class="current-price">Current Market Price (per unit)：${{ formatCurrency(holding.currentPrice || holding.buyPrice) }}</span>
-              <span class="price-change" :class="{ positive: (holding.profitLoss || 0) >= 0, negative: (holding.profitLoss || 0) < 0 }">
-                {{ (holding.profitLoss || 0) >= 0 ? '+' : '' }}${{ formatCurrency(holding.profitLoss || 0) }}
-              </span>
+    <!-- Main content area -->
+    <div class="main-content">
+      <!-- Stock Management -->
+      <div class="asset-management" ref="stockTradingCard">
+        <div class="asset-header">
+          <h2>Stock Trading</h2>
+          <button @click="showBuyModal = true" class="btn btn-primary">
+            + Add Stock Record
+          </button>
+        </div>
+        
+        <div v-if="loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading stocks...</p>
+        </div>
+        <div v-else-if="stockHoldings.length === 0" class="empty-state">
+          <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          <p>No stocks in your portfolio</p>
+          <p class="empty-subtitle">Start by buying your first stock!</p>
+        </div>
+        <div v-else class="holdings-grid">
+          <div
+            v-for="holding in stockHoldings"
+            :key="holding.id"
+            class="holding-card"
+          >
+            <div class="holding-header">
+              <div class="stock-info">
+                <h4>{{ holding.ticker }}</h4>
+                <span class="stock-volume">{{ holding.quantity }} shares</span>
+              </div>
+              <div class="holding-actions">
+                <button @click="sellAsset(holding)" class="btn btn-outline btn-sm">
+                  Sell
+                </button>
+                <!-- <button @click="deleteHolding(holding.id)" class="btn btn-danger btn-sm">
+                  ×
+                </button> -->
+              </div>
             </div>
             
-            <div class="value-row">
-              <span class="total-value">Current Market Value (Total): ${{ formatCurrency(holding.totalValue || (holding.quantity * (holding.currentPrice || holding.buyPrice))) }}</span>
-              <span class="return-percent" :class="{ positive: (holding.profitLossPercent || 0) >= 0, negative: (holding.profitLossPercent || 0) < 0 }">
-                {{ (holding.profitLossPercent || 0) >= 0 ? '+' : '' }}{{ formatPercent(holding.profitLossPercent || 0) }}%
-              </span>
-            </div>
-            
-            <div class="cost-row">
-              <span class="avg-cost">Average Purchase Cost: ${{ formatCurrency(holding.buyPrice) }}</span>
+            <div class="holding-details">
+              <div class="price-row">
+                <span class="current-price">Current Market Price (per unit)：${{ formatCurrency(holding.currentPrice || holding.buyPrice) }}</span>
+                <span class="price-change" :class="{ positive: (holding.profitLoss || 0) >= 0, negative: (holding.profitLoss || 0) < 0 }">
+                  {{ (holding.profitLoss || 0) >= 0 ? '+' : '' }}${{ formatCurrency(holding.profitLoss || 0) }}
+                </span>
+              </div>
+              
+              <div class="value-row">
+                <span class="total-value">Current Market Value (Total): ${{ formatCurrency(holding.totalValue || (holding.quantity * (holding.currentPrice || holding.buyPrice))) }}</span>
+                <span class="return-percent" :class="{ positive: (holding.profitLossPercent || 0) >= 0, negative: (holding.profitLossPercent || 0) < 0 }">
+                  {{ (holding.profitLossPercent || 0) >= 0 ? '+' : '' }}{{ formatPercent(holding.profitLossPercent || 0) }}%
+                </span>
+              </div>
+              
+              <div class="cost-row">
+                <span class="avg-cost">Average Purchase Cost: ${{ formatCurrency(holding.buyPrice) }}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Market Watch -->
-    <div class="market-watch-section">
-      <div class="market-watch-card">
-        <h3>Stock Market Watch</h3>
-        <div class="market-list">
-          <div 
-            v-for="stock in marketStocks" 
-            :key="stock.ticker"
-            class="market-item"
-            @click="selectStock(stock.ticker)"
-          >
-            <div class="market-symbol">{{ stock.ticker }}</div>
-            <div class="market-price">${{ formatCurrency(stock.price) }}</div>
-            <div class="market-change" :class="{ positive: stock.change >= 0, negative: stock.change < 0 }">
-              {{ stock.change >= 0 ? '+' : '' }}{{ formatPercent(stock.changePercent) }}%
+      <!-- Market Watch -->
+      <div class="market-watch-section">
+        <div class="market-watch-card" ref="marketWatchCard">
+          <h3>Stock Market Watch</h3>
+          <div class="market-list">
+            <div 
+              v-for="stock in marketStocks" 
+              :key="stock.ticker"
+              class="market-item"
+              @click="selectStock(stock.ticker)"
+            >
+              <div class="market-symbol">{{ stock.ticker }}</div>
+              <div class="market-price">${{ formatCurrency(stock.price) }}</div>
+              <div class="market-change" :class="{ positive: stock.change >= 0, negative: stock.change < 0 }">
+                {{ stock.change >= 0 ? '+' : '' }}{{ formatPercent(stock.changePercent) }}%
+              </div>
             </div>
           </div>
         </div>
@@ -138,28 +144,7 @@
         </div>
       </div>
       
-      <!-- Results Display -->
-      <div v-if="selectedTask && selectedTask.status === 'completed' && selectedTask.results" class="results-section">
-        <h4>Prediction Results - {{ selectedTask.task_name }}</h4>
-        <div class="prediction-list">
-          <div 
-            v-for="prediction in selectedTask.results.predictions" 
-            :key="prediction.ticker" 
-            class="prediction-item"
-          >
-            <div class="prediction-info">
-              <div class="prediction-symbol">{{ prediction.ticker }}</div>
-              <div class="prediction-current">Current: ${{ formatCurrency(prediction.currentPrice) }}</div>
-            </div>
-            <div class="prediction-price">
-              <div class="predicted-price">Predicted: ${{ formatCurrency(prediction.predictedPrice) }}</div>
-              <div class="prediction-change" :class="{ positive: prediction.predictedPrice > prediction.currentPrice, negative: prediction.predictedPrice < prediction.currentPrice }">
-                {{ prediction.predictedPrice > prediction.currentPrice ? '+' : '' }}{{ formatPercent(((prediction.predictedPrice - prediction.currentPrice) / prediction.currentPrice) * 100) }}%
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+
       
       <!-- Training Progress -->
       <div v-if="predictionState.isTraining" class="training-progress-section">
@@ -275,6 +260,36 @@
       </div>
     </div>
 
+    <!-- Results Modal -->
+    <div v-if="showResultsModal && selectedTask && selectedTask.status === 'completed' && selectedTask.results" class="modal-overlay" @click="showResultsModal = false">
+      <div class="modal results-modal" @click.stop>
+        <div class="modal-header">
+          <h3>Prediction Results - {{ selectedTask.task_name }}</h3>
+          <button @click="showResultsModal = false" class="close-btn">×</button>
+        </div>
+        <div class="modal-content">
+          <div class="prediction-list">
+            <div 
+              v-for="prediction in selectedTask.results.predictions" 
+              :key="prediction.ticker" 
+              class="prediction-item"
+            >
+              <div class="prediction-info">
+                <div class="prediction-symbol">{{ prediction.ticker }}</div>
+                <div class="prediction-current">Current: ${{ formatCurrency(prediction.currentPrice) }}</div>
+              </div>
+              <div class="prediction-price">
+                <div class="predicted-price">Predicted: ${{ formatCurrency(prediction.predictedPrice) }}</div>
+                <div class="prediction-change" :class="{ positive: prediction.predictedPrice > prediction.currentPrice, negative: prediction.predictedPrice < prediction.currentPrice }">
+                  {{ prediction.predictedPrice > prediction.currentPrice ? '+' : '' }}{{ formatPercent(((prediction.predictedPrice - prediction.currentPrice) / prediction.currentPrice) * 100) }}%
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Error Message -->
     <div v-if="error" class="error-toast">
       <span>{{ error }}</span>
@@ -284,7 +299,7 @@
 </template>
 
 <script>
-import { onMounted, onUnmounted, ref, computed } from 'vue';
+import { onMounted, onUnmounted, ref, computed, nextTick, watch } from 'vue';
 import { portfolioAPI, stockAPI, predictionAPI } from '../services/api';
 
 export default {
@@ -312,6 +327,7 @@ export default {
     // ]);
     const showBuyModal = ref(false);
     const showSellModal = ref(false);
+    const showResultsModal = ref(false);
     const sellingAsset = ref(null);
     
     const buyForm = ref({
@@ -324,6 +340,18 @@ export default {
       quantity: 1,
       price: null
     });
+
+    // Refs for height synchronization
+    const stockTradingCard = ref(null);
+    const marketWatchCard = ref(null);
+
+    // Function to sync market watch height with stock trading card
+    const syncMarketWatchHeight = () => {
+      if (stockTradingCard.value && marketWatchCard.value) {
+        const stockHeight = stockTradingCard.value.offsetHeight;
+        marketWatchCard.value.style.height = `${stockHeight}px`;
+      }
+    };
 
     // Load stock holdings
     const loadStockHoldings = async () => {
@@ -396,6 +424,7 @@ export default {
         const response = await predictionAPI.getTask(taskId);
         selectedTask.value = response.task;
         selectedTaskId.value = taskId;
+        showResultsModal.value = true;
       } catch (err) {
         console.error('Error loading task results:', err);
       }
@@ -578,7 +607,19 @@ export default {
           trainingStartTime.value = null;
         }
       });
+
+      // Sync market watch height with stock trading card
+      nextTick(() => {
+        syncMarketWatchHeight();
+      });
     });
+
+    // Watch for changes in stockHoldings to resync height
+    watch(stockHoldings, () => {
+      nextTick(() => {
+        syncMarketWatchHeight();
+      });
+    }, { deep: true });
 
     onUnmounted(() => {
       if (unsubscribe) {
@@ -612,7 +653,11 @@ export default {
       viewTaskResults,
       formatDate,
       getStatusText,
-      formatCurrency
+      formatCurrency,
+      stockTradingCard,
+      marketWatchCard,
+      syncMarketWatchHeight,
+      showResultsModal
     };
   }
 };
@@ -623,9 +668,16 @@ export default {
   padding: 24px;
   background: #f9fafb;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.main-content {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 24px;
+  align-items: start;
 }
 
 /* Asset Management */
@@ -750,7 +802,8 @@ export default {
   border-radius: 16px;
   padding: 24px;
   border: 1px solid #e5e7eb;
-  height: fit-content;
+  display: flex;
+  flex-direction: column;
 }
 
 .market-watch-card h3 {
@@ -764,8 +817,7 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  /* Limit the height so the list can scroll if there are too many items */
-  max-height: 300px;
+  flex: 1;
   /* Enable vertical scrolling when content exceeds the height */
   overflow-y: auto;
   /* Add padding to the right to prevent scroll bar from overlapping content */
@@ -836,7 +888,7 @@ export default {
   width: 40px;
   height: 40px;
   border: 4px solid #f3f4f6;
-  border-top: 4px solid #6366f1;
+  border-top: 4px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 16px;
@@ -848,8 +900,10 @@ export default {
 }
 
 .empty-icon {
-  font-size: 64px;
+  width: 64px;
+  height: 64px;
   margin-bottom: 16px;
+  color: #6b7280;
 }
 
 .empty-subtitle {
@@ -873,12 +927,12 @@ export default {
 }
 
 .btn-primary {
-  background: #6366f1;
+  background: #3b82f6;
   color: white;
 }
 
 .btn-primary:hover {
-  background: #5856eb;
+  background: #2563eb;
   transform: translateY(-1px);
 }
 
@@ -947,6 +1001,11 @@ export default {
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
+.results-modal {
+  max-width: 700px;
+  max-height: 80vh;
+}
+
 .modal-header {
   padding: 24px 24px 0;
   display: flex;
@@ -983,6 +1042,12 @@ export default {
   gap: 20px;
 }
 
+.modal-content {
+  padding: 24px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -1006,8 +1071,8 @@ export default {
 
 .form-input:focus {
   outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .modal-actions {
@@ -1035,6 +1100,10 @@ export default {
 
 .prediction-section {
   margin-top: 32px;
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e5e7eb;
 }
 
 .prediction-header {
@@ -1057,8 +1126,8 @@ export default {
 .training-time {
   font-family: 'Courier New', monospace;
   font-size: 14px;
-  color: #6366f1;
-  background: #f0f0ff;
+  color: #3b82f6;
+  background: #eff6ff;
   padding: 4px 8px;
   border-radius: 4px;
   font-weight: 500;
@@ -1133,8 +1202,8 @@ export default {
 }
 
 .task-item.task-active {
-  border-color: #6366f1;
-  background: #f8faff;
+  border-color: #3b82f6;
+  background: #eff6ff;
 }
 
 .task-info {
@@ -1210,8 +1279,8 @@ export default {
 }
 
 .training-progress-section {
-  background: #f8faff;
-  border: 1px solid #e0e7ff;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
   border-radius: 12px;
   padding: 20px;
   margin: 24px 0;
@@ -1261,6 +1330,49 @@ export default {
 .prediction-item:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transform: translateY(-1px);
+}
+
+.prediction-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prediction-symbol {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 16px;
+}
+
+.prediction-current {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.prediction-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.predicted-price {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 16px;
+}
+
+.prediction-change {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.prediction-change.positive {
+  color: #10b981;
+}
+
+.prediction-change.negative {
+  color: #ef4444;
 }
 
 .prediction-info {
