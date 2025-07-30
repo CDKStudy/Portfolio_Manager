@@ -1,18 +1,23 @@
 import express from 'express';
 import axios from 'axios';
 import * as tf from '@tensorflow/tfjs';
+import mysql from 'mysql2/promise';
 
 const router = express.Router();
 
-// Cache for predictions (5 minutes)
-let predictionsCache: any = null;
-let lastCacheTime = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+// Database connection
+async function getDbConnection() {
+  return await mysql.createConnection({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || 'root',
+    database: process.env.DB_NAME || 'portfolio_manager',
+  });
+}
 
 // Get historical stock data from Yahoo Finance
 async function fetchStockData(ticker: string): Promise<number[]> {
   try {
-    // Use Yahoo Finance API instead of Alpha Vantage
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=3mo`;
     const response = await axios.get(url);
     const data = response.data;
@@ -23,7 +28,6 @@ async function fetchStockData(ticker: string): Promise<number[]> {
     }
 
     const result = data.chart.result[0];
-    const timestamps = result.timestamp;
     const quotes = result.indicators.quote[0];
     const closes = quotes.close;
 
@@ -32,7 +36,6 @@ async function fetchStockData(ticker: string): Promise<number[]> {
       return [];
     }
 
-    // Filter out null values and get the last 100 days
     const validCloses = closes.filter((price: number) => price !== null);
     return validCloses.slice(-100);
   } catch (error) {
@@ -106,7 +109,7 @@ function generateLSTMData(data: number[], windowSize: number) {
 
 // Train the LSTM model
 async function trainLSTMModel(stockData: number[]) {
-  const windowSize = 10; // Use the last 10 days' data for prediction
+  const windowSize = 10;
   const normalizedData = normalizeData(stockData);
   const { inputs, outputs } = generateLSTMData(normalizedData, windowSize);
 
@@ -137,7 +140,7 @@ async function trainLSTMModel(stockData: number[]) {
   });
 
   await model.fit(X, Y, { 
-    epochs: 30, // Reduced epochs for faster training
+    epochs: 30,
     batchSize: 16,
     validationSplit: 0.2,
     verbose: 0
@@ -160,23 +163,48 @@ async function predictWithLSTMModel(model: tf.LayersModel, stockData: number[]) 
   return denormalizeData(predictedPriceNormalized, stockData);
 }
 
-// Mock function to get tickers (for now, return some popular stocks)
+// Get tickers from database or use default ones
 async function fetchTickersFromDatabase(): Promise<string[]> {
-  // For now, return some popular stocks
-  // In a real implementation, this would query the database
   return ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA'];
 }
 
-// Main function to predict stock prices
-async function predict() {
-  // Check cache first
-  const now = Date.now();
-  if (predictionsCache && (now - lastCacheTime) < CACHE_DURATION) {
-    console.log('Returning cached predictions');
-    return predictionsCache;
+// Create a new prediction task
+async function createPredictionTask(taskName: string): Promise<number> {
+  const connection = await getDbConnection();
+  try {
+    const [result] = await connection.execute(
+      'INSERT INTO prediction_tasks (task_name, status) VALUES (?, ?)',
+      [taskName, 'training']
+    );
+    return (result as any).insertId;
+  } finally {
+    await connection.end();
   }
+}
 
-  console.log('Starting new prediction process...');
+// Update prediction task
+async function updatePredictionTask(taskId: number, status: string, results?: any) {
+  const connection = await getDbConnection();
+  try {
+    if (status === 'completed') {
+      await connection.execute(
+        'UPDATE prediction_tasks SET status = ?, results = ?, completed_at = NOW() WHERE id = ?',
+        [status, JSON.stringify(results), taskId]
+      );
+    } else {
+      await connection.execute(
+        'UPDATE prediction_tasks SET status = ? WHERE id = ?',
+        [status, taskId]
+      );
+    }
+  } finally {
+    await connection.end();
+  }
+}
+
+// Main function to predict stock prices
+async function predict(taskId: number) {
+  console.log(`Starting prediction task ${taskId}...`);
   
   const tickers = await fetchTickersFromDatabase();
   const predictions: Array<{ticker: string, predictedPrice: number, currentPrice: number}> = [];
@@ -185,7 +213,6 @@ async function predict() {
     console.log(`Fetching data for ticker: ${ticker}`);
     
     try {
-      // Get historical data for training
       const historicalData = await fetchStockData(ticker);
       const currentPrice = await fetchCurrentStockPrice(ticker);
 
@@ -201,10 +228,7 @@ async function predict() {
 
       console.log(`Training model for ${ticker} with ${historicalData.length} data points`);
       
-      // Train the model
       const model = await trainLSTMModel(historicalData);
-      
-      // Make prediction
       const predictedPrice = await predictWithLSTMModel(model, historicalData);
 
       predictions.push({
@@ -215,7 +239,6 @@ async function predict() {
 
       console.log(`${ticker}: Current $${currentPrice}, Predicted $${predictedPrice}`);
       
-      // Clean up model to free memory
       model.dispose();
       
     } catch (error) {
@@ -224,24 +247,93 @@ async function predict() {
   }
 
   const result = { predictions };
-  
-  // Cache the result
-  predictionsCache = result;
-  lastCacheTime = now;
-  
-  console.log('Prediction completed and cached:', result);
+  console.log(`Prediction task ${taskId} completed:`, result);
   return result;
 }
 
-// GET /api/predict
-router.get('/', async (req, res) => {
+// GET /api/predict/tasks - Get all prediction tasks
+router.get('/tasks', async (req, res) => {
   try {
-    const result = await predict();
-    res.json(result);
+    const connection = await getDbConnection();
+    try {
+      const [rows] = await connection.execute(
+        'SELECT id, task_name, status, created_at, completed_at FROM prediction_tasks ORDER BY created_at DESC LIMIT 10'
+      );
+      res.json({ tasks: rows });
+    } finally {
+      await connection.end();
+    }
   } catch (error) {
-    console.error('Error in prediction process:', error);
+    console.error('Error fetching tasks:', error);
     res.status(500).json({ 
-      error: 'Failed to generate predictions',
+      error: 'Failed to fetch prediction tasks',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// GET /api/predict/tasks/:id - Get specific task with results
+router.get('/tasks/:id', async (req, res) => {
+  try {
+    const taskId = parseInt(req.params.id);
+    const connection = await getDbConnection();
+    try {
+      const [rows] = await connection.execute(
+        'SELECT * FROM prediction_tasks WHERE id = ?',
+        [taskId]
+      );
+      
+      if ((rows as any[]).length === 0) {
+        return res.status(404).json({ error: 'Task not found' });
+      }
+      
+      const task = (rows as any[])[0];
+      if (task.results && typeof task.results === 'string') {
+        task.results = JSON.parse(task.results);
+      }
+      
+      res.json({ task });
+    } finally {
+      await connection.end();
+    }
+  } catch (error) {
+    console.error('Error fetching task:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch task',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// POST /api/predict - Start new prediction
+router.post('/', async (req, res) => {
+  try {
+    const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    const taskName = `Stock Prediction ${timestamp}`;
+    
+    const taskId = await createPredictionTask(taskName);
+    
+    // Start prediction in background
+    (async () => {
+      try {
+        const result = await predict(taskId);
+        await updatePredictionTask(taskId, 'completed', result);
+      } catch (error) {
+        console.error(`Prediction task ${taskId} failed:`, error);
+        await updatePredictionTask(taskId, 'failed');
+      }
+    })();
+    
+    res.json({ 
+      taskId,
+      taskName,
+      status: 'training',
+      message: 'Prediction task started'
+    });
+  } catch (error) {
+    console.error('Error starting prediction:', error);
+    res.status(500).json({ 
+      error: 'Failed to start prediction',
       message: error instanceof Error ? error.message : 'Unknown error'
     });
   }

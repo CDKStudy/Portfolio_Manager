@@ -85,30 +85,91 @@
 
     <!-- Predict -->
     <div class="prediction-section">
-      <h3>Stock Predictions</h3>
-      <div v-if="predictionsLoading" class="loading-state">
-        <div class="spinner"></div>
-        <p>Loading predictions...</p>
+      <div class="prediction-header">
+        <h3>AI Stock Predictions</h3>
+        <div class="prediction-controls">
+          <button 
+            @click="startNewPrediction" 
+            :disabled="predictionState.isTraining" 
+            class="btn btn-primary btn-sm"
+          >
+            {{ predictionState.isTraining ? 'Training Models...' : 'Generate New Predictions' }}
+          </button>
+          <!-- <div v-if="predictionState.isTraining && trainingTime" class="training-time">
+            {{ trainingTime }}
+          </div> -->
+        </div>
       </div>
-      <div v-else-if="predictions.length === 0" class="empty-state">
-        <p>No predictions available.</p>
-      </div>
-      <div v-else class="prediction-list">
-        <div 
-          v-for="prediction in predictions" 
-          :key="prediction.ticker" 
-          class="prediction-item"
-        >
-          <div class="prediction-info">
-            <div class="prediction-symbol">{{ prediction.ticker }}</div>
-            <div class="prediction-current">Current: ${{ formatCurrency(prediction.currentPrice) }}</div>
-          </div>
-          <div class="prediction-price">
-            <div class="predicted-price">Predicted: ${{ formatCurrency(prediction.predictedPrice) }}</div>
-            <div class="prediction-change" :class="{ positive: prediction.predictedPrice > prediction.currentPrice, negative: prediction.predictedPrice < prediction.currentPrice }">
-              {{ prediction.predictedPrice > prediction.currentPrice ? '+' : '' }}{{ formatPercent(((prediction.predictedPrice - prediction.currentPrice) / prediction.currentPrice) * 100) }}%
+      
+      <!-- Task History -->
+      <div class="task-history">
+        <h4>Prediction History</h4>
+        <div v-if="tasks.length === 0" class="empty-state">
+          <div class="empty-icon">📋</div>
+          <p>No prediction tasks yet</p>
+          <p class="empty-subtitle">Generate your first AI prediction above</p>
+        </div>
+        <div v-else class="task-list">
+          <div 
+            v-for="task in tasks" 
+            :key="task.id"
+            class="task-item"
+            :class="{ 'task-active': selectedTaskId === task.id }"
+            @click="selectTask(task)"
+          >
+            <div class="task-info">
+              <div class="task-name">{{ task.task_name }}</div>
+              <div class="task-date">{{ formatDate(task.created_at) }}</div>
+            </div>
+            <div class="task-status">
+              <span class="status-badge" :class="task.status">
+                <span v-if="task.status === 'training'" class="status-spinner"></span>
+                {{ getStatusText(task.status) }}
+              </span>
+              <button 
+                v-if="task.status === 'completed'" 
+                @click.stop="viewTaskResults(task.id)"
+                class="btn btn-outline btn-xs"
+              >
+                View Results
+              </button>
             </div>
           </div>
+        </div>
+      </div>
+      
+      <!-- Results Display -->
+      <div v-if="selectedTask && selectedTask.status === 'completed' && selectedTask.results" class="results-section">
+        <h4>Prediction Results - {{ selectedTask.task_name }}</h4>
+        <div class="prediction-list">
+          <div 
+            v-for="prediction in selectedTask.results.predictions" 
+            :key="prediction.ticker" 
+            class="prediction-item"
+          >
+            <div class="prediction-info">
+              <div class="prediction-symbol">{{ prediction.ticker }}</div>
+              <div class="prediction-current">Current: ${{ formatCurrency(prediction.currentPrice) }}</div>
+            </div>
+            <div class="prediction-price">
+              <div class="predicted-price">Predicted: ${{ formatCurrency(prediction.predictedPrice) }}</div>
+              <div class="prediction-change" :class="{ positive: prediction.predictedPrice > prediction.currentPrice, negative: prediction.predictedPrice < prediction.currentPrice }">
+                {{ prediction.predictedPrice > prediction.currentPrice ? '+' : '' }}{{ formatPercent(((prediction.predictedPrice - prediction.currentPrice) / prediction.currentPrice) * 100) }}%
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Training Progress -->
+      <div v-if="predictionState.isTraining" class="training-progress-section">
+        <div class="training-header">
+          <h4>Training in Progress</h4>
+          <!-- <div class="training-time">{{ trainingTime }}</div> -->
+        </div>
+        <div class="training-details">
+          <p>🧠 Analyzing market patterns and training LSTM neural networks...</p>
+          <p>⏱️ This process typically takes 2-5 minutes</p>
         </div>
       </div>
     </div>
@@ -223,7 +284,7 @@
 </template>
 
 <script>
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref, computed } from 'vue';
 import { portfolioAPI, stockAPI, predictionAPI } from '../services/api';
 
 export default {
@@ -234,8 +295,11 @@ export default {
     const stockHoldings = ref([]);
     //Empty array for market stocks
     const marketStocks = ref([]);
-    const predictions = ref([]);  // prediction data
-    const predictionsLoading = ref(false);  // separate loading for predictions
+    const tasks = ref([]);  // prediction tasks
+    const selectedTask = ref(null);  // selected task for viewing results
+    const selectedTaskId = ref(null);
+    const predictionState = ref(predictionAPI.getState());  // global prediction state
+    const trainingStartTime = ref(null);
     // const marketStocks = ref([
     //   { ticker: 'AAPL', price: 213.88, change: 1.28, changePercent: 0.06 },
     //   { ticker: 'MSFT', price: 513.71, change: 2.82, changePercent: 0.55 },
@@ -276,16 +340,80 @@ export default {
       }
     };
 
-    // 加载预测数据
-    const loadPredictions = async () => {
-      predictionsLoading.value = true;
+    // // Computed property for training time display
+    // const trainingTime = computed(() => {
+    //   if (!predictionState.value.isTraining || !trainingStartTime.value) return null;
+    //   const elapsed = Math.floor((Date.now() - trainingStartTime.value) / 1000);
+    //   const minutes = Math.floor(elapsed / 60);
+    //   const seconds = elapsed % 60;
+    //   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    // });
+
+    // Load all prediction tasks
+    const loadTasks = async () => {
       try {
-        const response = await predictionAPI.getPredictions();
-        predictions.value = response.data.predictions || [];
+        const response = await predictionAPI.getTasks();
+        tasks.value = response.tasks || [];
       } catch (err) {
-        console.error('Error fetching predictions:', err);
-      } finally {
-        predictionsLoading.value = false;
+        console.error('Error loading tasks:', err);
+      }
+    };
+
+    // Start new prediction
+    const startNewPrediction = async () => {
+      try {
+        trainingStartTime.value = Date.now();
+        const response = await predictionAPI.startPrediction();
+        
+        // Start polling for task completion
+        await predictionAPI.pollTaskStatus(response.taskId, (task) => {
+          // Update the task in the list
+          const index = tasks.value.findIndex(t => t.id === task.id);
+          if (index >= 0) {
+            tasks.value[index] = task;
+          } else {
+            tasks.value.unshift(task);
+          }
+        });
+        
+        // Reload tasks to get the completed task
+        await loadTasks();
+      } catch (err) {
+        console.error('Error starting prediction:', err);
+        error.value = 'Failed to start prediction';
+      }
+    };
+
+    // Select a task
+    const selectTask = (task) => {
+      selectedTaskId.value = task.id;
+      selectedTask.value = task;
+    };
+
+    // View task results
+    const viewTaskResults = async (taskId) => {
+      try {
+        const response = await predictionAPI.getTask(taskId);
+        selectedTask.value = response.task;
+        selectedTaskId.value = taskId;
+      } catch (err) {
+        console.error('Error loading task results:', err);
+      }
+    };
+
+    // Format date for display
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      return date.toLocaleString();
+    };
+
+    // Get status text
+    const getStatusText = (status) => {
+      switch (status) {
+        case 'training': return 'Training';
+        case 'completed': return 'Completed';
+        case 'failed': return 'Failed';
+        default: return status;
       }
     };
 
@@ -428,11 +556,34 @@ export default {
       }).format(value);
     };
 
+    // Subscribe to prediction state changes
+    let unsubscribe = null;
+
     onMounted(() => {
       loadStockHoldings();
       loadMarketStocks();
-      // Load predictions only once on mount
-      loadPredictions();
+      loadTasks();
+
+      // Subscribe to global prediction state changes
+      unsubscribe = predictionAPI.onStateChange((newState) => {
+        predictionState.value = { ...newState };
+        
+        // Update training start time if training started
+        if (newState.isTraining && !trainingStartTime.value) {
+          trainingStartTime.value = newState.lastTrainingStart;
+        }
+        
+        // Reset training start time when training completes
+        if (!newState.isTraining && trainingStartTime.value) {
+          trainingStartTime.value = null;
+        }
+      });
+    });
+
+    onUnmounted(() => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
     });
 
     return {
@@ -451,8 +602,16 @@ export default {
       deleteHolding,
       selectStock,
       formatPercent,
-      predictions,
-      predictionsLoading,
+      tasks,
+      selectedTask,
+      selectedTaskId,
+      predictionState,
+      // trainingTime,
+      startNewPrediction,
+      selectTask,
+      viewTaskResults,
+      formatDate,
+      getStatusText,
       formatCurrency
     };
   }
@@ -876,6 +1035,210 @@ export default {
 
 .prediction-section {
   margin-top: 32px;
+}
+
+.prediction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.prediction-header h3 {
+  margin: 0;
+}
+
+.prediction-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.training-time {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  color: #6366f1;
+  background: #f0f0ff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.new-results-notification {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notification-icon {
+  font-size: 20px;
+}
+
+.notification-content span:nth-child(2) {
+  flex: 1;
+  font-weight: 500;
+}
+
+.training-progress {
+  margin-top: 16px;
+}
+
+.training-details {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.task-history {
+  margin: 32px 0;
+}
+
+.task-history h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 16px;
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.task-item {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.task-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.task-item.task-active {
+  border-color: #6366f1;
+  background: #f8faff;
+}
+
+.task-info {
+  flex: 1;
+}
+
+.task-name {
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.task-date {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.task-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-badge.training {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.failed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.btn-xs {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.results-section {
+  margin: 32px 0;
+}
+
+.results-section h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 20px;
+}
+
+.training-progress-section {
+  background: #f8faff;
+  border: 1px solid #e0e7ff;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 24px 0;
+}
+
+.training-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.training-header h4 {
+  margin: 0;
+  color: #1f2937;
+}
+
+.training-details p {
+  margin: 8px 0;
+  color: #4b5563;
+}
+
+.prediction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
 }
 
 .prediction-list {

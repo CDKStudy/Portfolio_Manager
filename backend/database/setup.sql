@@ -55,3 +55,16 @@ INSERT INTO transactions (user_id, asset_type, ticker, action, quantity, price) 
 (1, 'stock', 'MSFT', 'buy', 5.0000, 300.0000),
 (1, 'stock', 'GOOGL', 'buy', 8.0000, 180.0000),
 (1, 'fund', '510300', 'buy', 1000.0000, 3.5000);
+
+
+-- Prediction tasks table
+CREATE TABLE IF NOT EXISTS prediction_tasks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    task_name VARCHAR(255) NOT NULL,
+    status ENUM('training', 'completed', 'failed') NOT NULL DEFAULT 'training',
+    results JSON,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_status_date (status, created_at DESC)
+);
