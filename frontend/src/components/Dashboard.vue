@@ -5,7 +5,10 @@
       <div class="summary-card total-portfolio">
         <div class="card-header">
           <span class="card-title">Total Portfolio Value</span>
-          <i class="card-icon">💰</i>
+          <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
         </div>
         <div class="card-content">
           <div class="card-value">${{ formatCurrency(portfolio.netWorth) }}</div>
@@ -19,7 +22,10 @@
       <div class="summary-card stocks">
         <div class="card-header">
           <span class="card-title">Stocks</span>
-          <i class="card-icon">📊</i>
+          <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
         </div>
         <div class="card-content">
           <div class="card-value">${{ formatCurrency(stockHoldings.totalValue) }}</div>
@@ -33,7 +39,10 @@
       <div class="summary-card funds">
         <div class="card-header">
           <span class="card-title">Funds</span>
-          <i class="card-icon">📊</i>
+          <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+          </svg>
         </div>
         <div class="card-content">
           <div class="card-value">${{ formatCurrency(fundHoldings.totalValue) }}</div>
@@ -47,7 +56,10 @@
       <div class="summary-card cash">
         <div class="card-header">
           <span class="card-title">Cash</span>
-          <i class="card-icon">💰</i>
+          <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
         </div>
         <div class="card-content">
           <div class="card-value">${{ formatCurrency(userInfo.cash) }}</div>
@@ -83,7 +95,10 @@
           <p>Loading portfolio...</p>
         </div>
         <div v-else-if="allHoldings.length === 0" class="empty-state">
-          <div class="empty-icon">📈</div>
+          <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
           <p>No holdings in your portfolio yet</p>
           <p class="empty-subtitle">Start by adding your first asset!</p>
         </div>
@@ -100,10 +115,10 @@
                 {{ holding.type.toUpperCase() }}
               </div>
             </div>
-            <div class="holding-values">
-              <div class="current-value">${{ formatCurrency(holding.currentPrice || holding.buyPrice) }}</div>
-              <div class="profit-loss" :class="{ positive: (holding.profitLoss || 0) >= 0, negative: (holding.profitLoss || 0) < 0 }">
-                {{ (holding.profitLoss || 0) >= 0 ? '+' : '' }}${{ formatCurrency(holding.profitLoss || 0) }}
+            <div class="holding-value">
+              <div class="value-amount">${{ formatCurrency(holding.currentValue) }}</div>
+              <div class="value-change" :class="holding.changePercent >= 0 ? 'positive' : 'negative'">
+                {{ holding.changePercent >= 0 ? '+' : '' }}{{ holding.changePercent.toFixed(2) }}%
               </div>
             </div>
           </div>
@@ -411,7 +426,9 @@ export default {
 }
 
 .card-icon {
-  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
 }
 
 .card-content {
@@ -519,8 +536,10 @@ export default {
 }
 
 .empty-icon {
-  font-size: 48px;
+  width: 48px;
+  height: 48px;
   margin-bottom: 16px;
+  color: #6b7280;
 }
 
 .empty-subtitle {

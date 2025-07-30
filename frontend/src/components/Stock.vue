@@ -16,7 +16,10 @@
           <p>Loading stocks...</p>
         </div>
         <div v-else-if="stockHoldings.length === 0" class="empty-state">
-          <div class="empty-icon">📈</div>
+          <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
           <p>No stocks in your portfolio</p>
           <p class="empty-subtitle">Start by buying your first stock!</p>
         </div>
@@ -897,8 +900,10 @@ export default {
 }
 
 .empty-icon {
-  font-size: 64px;
+  width: 64px;
+  height: 64px;
   margin-bottom: 16px;
+  color: #6b7280;
 }
 
 .empty-subtitle {

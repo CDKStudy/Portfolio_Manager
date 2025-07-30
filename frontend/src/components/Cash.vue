@@ -2,7 +2,13 @@
   <div class="cash-app">
     <!-- Header -->
     <header class="cash-header">
-      <h1>💰 Cash Management</h1>
+      <h1>
+        <svg class="header-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Cash Management
+      </h1>
       <p>Manage your cash balance and transactions</p>
     </header>
 
@@ -53,7 +59,10 @@
         <p>Loading transactions...</p>
       </div>
       <div v-else-if="transactions.length === 0" class="empty-state">
-        <div class="empty-icon">📊</div>
+        <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
         <p>No cash transactions yet</p>
       </div>
       <div v-else class="transactions-list">
@@ -64,7 +73,14 @@
         >
           <div class="transaction-info">
             <div class="transaction-type" :class="transaction.type">
-              {{ transaction.type === 'deposit' ? '📥' : '📤' }}
+              <svg v-if="transaction.type === 'deposit'" class="transaction-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+              </svg>
+              <svg v-else class="transaction-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+              </svg>
               {{ transaction.type === 'deposit' ? 'Deposit' : 'Withdrawal' }}
             </div>
             <div class="transaction-date">{{ formatDate(transaction.timestamp) }}</div>
@@ -80,7 +96,13 @@
     <div v-if="showDepositModal" class="modal-overlay" @click="showDepositModal = false">
       <div class="modal" @click.stop>
         <div class="modal-header">
-          <h3>💰 Deposit Cash</h3>
+          <h3>
+            <svg class="modal-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Deposit Cash
+          </h3>
           <button @click="showDepositModal = false" class="close-btn">×</button>
         </div>
         <form @submit.prevent="depositCash" class="modal-form">
@@ -100,8 +122,8 @@
             <button type="button" @click="showDepositModal = false" class="btn btn-secondary">
               Cancel
             </button>
-            <button type="submit" :disabled="loading" class="btn btn-success">
-              {{ loading ? 'Processing...' : 'Deposit' }}
+            <button type="submit" class="btn btn-success">
+              Deposit
             </button>
           </div>
         </form>
@@ -532,8 +554,34 @@ export default {
 }
 
 .empty-icon {
-  font-size: 3rem;
+  width: 3rem;
+  height: 3rem;
   margin-bottom: 1rem;
+  color: #6b7280;
+}
+
+.header-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-right: 0.5rem;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.transaction-icon {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.25rem;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.modal-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-right: 0.5rem;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .btn {
