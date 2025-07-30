@@ -266,11 +266,24 @@ router.get('/meta/popular-tickers', async (req: Request, res: Response) => {
   }
 });
 
-//NEW ADD ------
-// GET /api/portfolio/meta/market-watch - Get real-time prices for popular tickers
+
+// GET /api/portfolio/meta/market-watch - Get real-time prices for popular stock tickers
 router.get('/meta/market-watch', async (req: Request, res: Response) => {
   try {
     const tickers = financialService.getPopularTickers(); // Hot Stock List
+    const prices = await financialService.getMultipleStockPrices(tickers); // Batch get market information
+    res.json({ stocks: prices });
+  } catch (error) {
+    console.error('Error fetching market watch data:', error);
+    res.status(500).json({ error: 'Failed to fetch market data' });
+  }
+});
+
+// GET /api/portfolio/meta/market-watch - Get real-time prices for popular fund tickers
+router.get('/meta/fund-market-watch', async (req: Request, res: Response) => {
+  try {
+    const tickers = financialService.getPopularFundTickers(); // Hot fund List
+    console.log('Fetching market watch for funds:', tickers);
     const prices = await financialService.getMultipleStockPrices(tickers); // Batch get market information
     res.json({ stocks: prices });
   } catch (error) {

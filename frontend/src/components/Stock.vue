@@ -5,7 +5,7 @@
       <div class="asset-header">
         <h2>Stock Trading</h2>
         <button @click="showBuyModal = true" class="btn btn-primary">
-          + Buy Stock
+          + Add Stock Record
         </button>
       </div>
       
@@ -41,21 +41,21 @@
           
           <div class="holding-details">
             <div class="price-row">
-              <span class="current-price">${{ formatCurrency(holding.currentPrice || holding.buyPrice) }}</span>
+              <span class="current-price">Current Market Price (per unit)：${{ formatCurrency(holding.currentPrice || holding.buyPrice) }}</span>
               <span class="price-change" :class="{ positive: (holding.profitLoss || 0) >= 0, negative: (holding.profitLoss || 0) < 0 }">
                 {{ (holding.profitLoss || 0) >= 0 ? '+' : '' }}${{ formatCurrency(holding.profitLoss || 0) }}
               </span>
             </div>
             
             <div class="value-row">
-              <span class="total-value">Total: ${{ formatCurrency(holding.totalValue || (holding.quantity * (holding.currentPrice || holding.buyPrice))) }}</span>
+              <span class="total-value">Current Market Value (Total): ${{ formatCurrency(holding.totalValue || (holding.quantity * (holding.currentPrice || holding.buyPrice))) }}</span>
               <span class="return-percent" :class="{ positive: (holding.profitLossPercent || 0) >= 0, negative: (holding.profitLossPercent || 0) < 0 }">
                 {{ (holding.profitLossPercent || 0) >= 0 ? '+' : '' }}{{ formatPercent(holding.profitLossPercent || 0) }}%
               </span>
             </div>
             
             <div class="cost-row">
-              <span class="avg-cost">Avg Cost: ${{ formatCurrency(holding.buyPrice) }}</span>
+              <span class="avg-cost">Average Purchase Cost: ${{ formatCurrency(holding.buyPrice) }}</span>
             </div>
           </div>
         </div>

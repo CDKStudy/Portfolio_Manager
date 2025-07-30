@@ -34,6 +34,7 @@ export class FinancialDataService {
         return cached.data;
       }
 
+
       // Fetch from Yahoo Finance
       const quote = await yahooFinance.quote(upperTicker);
       
@@ -122,6 +123,49 @@ export class FinancialDataService {
       'LLY', 'ABBV', 'WMT', 'MRK', 'ACN', 'TXN', 'VZ', 'CMCSA', 'PFE'
     ];
   }
+
+  // ea list of popular Chinese ETFs with Yahoo-compatible tickers
+getPopularFundTickers(): string[] {
+  return [
+    // Broad market indices
+    '510300.SS', // CSI 300 ETF (Huatai-Pinebridge)
+    '510500.SZ', // CSI 500 ETF (Southern Fund)
+    '159915.SZ', // ChiNext ETF (E Fund)
+
+    // Tech, innovation, and green energy
+    '515000.SS', // STAR 50 ETF (Sci-Tech Innovation Board)
+    '516160.SS', // Carbon Neutrality ETF
+    '588000.SS', // STAR Market 50 ETF
+    '159806.SZ', // ChiNext 50 ETF
+    '159992.SZ', // China Internet ETF
+
+    // Financial sector: banks, brokers, insurance
+    '512800.SS', // Bank ETF
+    '512000.SS', // Securities ETF
+    '512910.SS', // Insurance ETF
+
+    // Industry sectors: healthcare, consumption, defense
+    '512010.SS', // Healthcare ETF
+    '159928.SZ', // Consumer ETF
+    '512660.SS', // Defense ETF (Military)
+    '512690.SS', // Liquor & Spirits ETF
+
+    // Green energy, EV, semiconductors
+    '516110.SS', // New Energy Vehicle ETF
+    '512480.SS', // Semiconductor ETF
+    '159865.SZ', // New Energy ETF
+
+    // Additional indices
+    '512100.SS', // CSI 100 ETF
+    '515050.SS', // Emerging Industries ETF
+    '159949.SZ', // CSI 500 ETF (E Fund)
+
+    // Real estate, infrastructure, steel
+    '512200.SS', // Real Estate ETF
+    '512970.SS', // Construction ETF
+    '512030.SS', // Steel ETF
+  ];
+}
 
   // Clear cache
   clearCache(): void {

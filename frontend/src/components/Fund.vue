@@ -5,7 +5,7 @@
       <div class="asset-header">
         <h2>Fund Trading</h2>
         <button @click="showBuyModal = true" class="btn btn-primary">
-          + Buy Fund
+          + Add Fund Record
         </button>
       </div>
       
@@ -33,29 +33,29 @@
               <button @click="sellAsset(holding)" class="btn btn-outline btn-sm">
                 Sell
               </button>
-              <button @click="deleteHolding(holding.id)" class="btn btn-danger btn-sm">
+              <!-- <button @click="deleteHolding(holding.id)" class="btn btn-danger btn-sm">
                 ×
-              </button>
+              </button> -->
             </div>
           </div>
           
           <div class="holding-details">
             <div class="price-row">
-              <span class="current-price">${{ formatCurrency(holding.currentPrice || holding.buyPrice) }}</span>
+              <span class="current-price">Current Market Price (per unit)：${{ formatCurrency(holding.currentPrice || holding.buyPrice) }}</span>
               <span class="price-change" :class="{ positive: (holding.profitLoss || 0) >= 0, negative: (holding.profitLoss || 0) < 0 }">
                 {{ (holding.profitLoss || 0) >= 0 ? '+' : '' }}${{ formatCurrency(holding.profitLoss || 0) }}
               </span>
             </div>
-            
+            <!-- total -->
             <div class="value-row">
-              <span class="total-value">Total: ${{ formatCurrency(holding.totalValue || (holding.quantity * (holding.currentPrice || holding.buyPrice))) }}</span>
+              <span class="total-value">Current Market Value (Total): ${{ formatCurrency(holding.totalValue || (holding.quantity * (holding.currentPrice || holding.buyPrice))) }}</span>
               <span class="return-percent" :class="{ positive: (holding.profitLossPercent || 0) >= 0, negative: (holding.profitLossPercent || 0) < 0 }">
                 {{ (holding.profitLossPercent || 0) >= 0 ? '+' : '' }}{{ formatPercent(holding.profitLossPercent || 0) }}%
               </span>
             </div>
-            
+            <!-- Avg Cost -->
             <div class="cost-row">
-              <span class="avg-cost">Avg Cost: ${{ formatCurrency(holding.buyPrice) }}</span>
+              <span class="avg-cost">Average Purchase Cost: ${{ formatCurrency(holding.buyPrice) }}</span>
             </div>
           </div>
         </div>
@@ -193,7 +193,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { fundAPI, portfolioAPI } from '../services/api';
 
 export default {
@@ -202,16 +202,17 @@ export default {
     const loading = ref(false);
     const error = ref('');
     const fundHoldings = ref([]);
-    const marketFunds = ref([
-      { ticker: '510300', price: 3.52, change: 0.02, changePercent: 0.57 },
-      { ticker: '510500', price: 5.18, change: 0.05, changePercent: 0.97 },
-      { ticker: '159915', price: 1.045, change: -0.003, changePercent: -0.29 },
-      { ticker: '159919', price: 4.234, change: 0.021, changePercent: 0.50 },
-      { ticker: '512100', price: 1.632, change: -0.012, changePercent: -0.73 },
-      { ticker: '515050', price: 1.089, change: 0.008, changePercent: 0.74 },
-      { ticker: '516160', price: 0.892, change: 0.015, changePercent: 1.71 },
-      { ticker: '588000', price: 4.567, change: -0.033, changePercent: -0.72 }
-    ]);
+    const marketFunds = ref([]);
+    // const marketFunds = ref([
+    //   { ticker: '510300', price: 3.52, change: 0.02, changePercent: 0.57 },
+    //   { ticker: '510500', price: 5.18, change: 0.05, changePercent: 0.97 },
+    //   { ticker: '159915', price: 1.045, change: -0.003, changePercent: -0.29 },
+    //   { ticker: '159919', price: 4.234, change: 0.021, changePercent: 0.50 },
+    //   { ticker: '512100', price: 1.632, change: -0.012, changePercent: -0.73 },
+    //   { ticker: '515050', price: 1.089, change: 0.008, changePercent: 0.74 },
+    //   { ticker: '516160', price: 0.892, change: 0.015, changePercent: 1.71 },
+    //   { ticker: '588000', price: 4.567, change: -0.033, changePercent: -0.72 }
+    // ]);
     const showBuyModal = ref(false);
     const showSellModal = ref(false);
     const sellingAsset = ref(null);
@@ -349,6 +350,17 @@ export default {
       }
     };
 
+    // Load real-time market watch data
+    const loadMarketFund = async () => {
+      try {
+        const res = await fundAPI.getMarketWatch();
+        marketFunds.value = res.data.stocks;
+      } catch (err) {
+        error.value = 'Failed to load market data';
+        console.error('Error loading market stocks:', err);
+      }
+    };
+
     // Select fund from market watch
     const selectFund = (ticker) => {
       buyForm.value.ticker = ticker;
@@ -371,6 +383,8 @@ export default {
 
     onMounted(() => {
       loadFundHoldings();
+
+      loadMarketFund();
     });
 
     return {
@@ -541,7 +555,27 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 12px;
+
+  /* Make it scrollable */
+  max-height: 400px;     /* Adjust height as needed */
+  overflow-y: auto;
+  padding-right: 4px;    /* Some space for scrollbar */
 }
+
+/* Optional: Customize scrollbar (for modern browsers) */
+.market-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.market-list::-webkit-scrollbar-thumb {
+  background-color: #fbbf24;
+  border-radius: 6px;
+}
+
+.market-list::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
 
 .market-item {
   display: flex;

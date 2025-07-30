@@ -28,8 +28,11 @@ export const portfolioAPI = {
     return api.post('/portfolio/buy', data, { params })
   },
 
-  // Get real-time market watch (popular tickers)
+  // Get real-time market watch (popular stock tickers)
   getMarketWatch: () => api.get('/portfolio/meta/market-watch'),
+
+  // Get real-time market watch (popular fund tickers)
+  getFundMarketWatch: () => api.get('/portfolio/meta/fund-market-watch'),
 
   // Sell stock/fund
   sellAsset: (data, userId = DEFAULT_USER_ID) => {
@@ -109,6 +112,10 @@ export const stockAPI = {
 
 // Fund-specific API functions
 export const fundAPI = {
+
+  // Fetch market watch fund list (real-time prices of popular tickers)
+  getMarketWatch: () => portfolioAPI.getFundMarketWatch(),
+
   // Buy fund
   buyFund: (ticker, quantity, price = null, userId = DEFAULT_USER_ID) => {
     return portfolioAPI.buyAsset({
