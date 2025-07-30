@@ -86,7 +86,7 @@
     <!-- Predict -->
     <div class="prediction-section">
       <h3>Stock Predictions</h3>
-      <div v-if="loading" class="loading-state">
+      <div v-if="predictionsLoading" class="loading-state">
         <div class="spinner"></div>
         <p>Loading predictions...</p>
       </div>
@@ -99,8 +99,16 @@
           :key="prediction.ticker" 
           class="prediction-item"
         >
-          <div class="prediction-symbol">{{ prediction.ticker }}</div>
-          <div class="prediction-price">Predicted Price: ${{ formatCurrency(prediction.predictedPrice) }}</div>
+          <div class="prediction-info">
+            <div class="prediction-symbol">{{ prediction.ticker }}</div>
+            <div class="prediction-current">Current: ${{ formatCurrency(prediction.currentPrice) }}</div>
+          </div>
+          <div class="prediction-price">
+            <div class="predicted-price">Predicted: ${{ formatCurrency(prediction.predictedPrice) }}</div>
+            <div class="prediction-change" :class="{ positive: prediction.predictedPrice > prediction.currentPrice, negative: prediction.predictedPrice < prediction.currentPrice }">
+              {{ prediction.predictedPrice > prediction.currentPrice ? '+' : '' }}{{ formatPercent(((prediction.predictedPrice - prediction.currentPrice) / prediction.currentPrice) * 100) }}%
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -216,8 +224,7 @@
 
 <script>
 import { onMounted, ref } from 'vue';
-import { portfolioAPI, stockAPI } from '../services/api';
-import axios from 'axios';
+import { portfolioAPI, stockAPI, predictionAPI } from '../services/api';
 
 export default {
   name: 'Stock',
@@ -228,6 +235,7 @@ export default {
     //Empty array for market stocks
     const marketStocks = ref([]);
     const predictions = ref([]);  // prediction data
+    const predictionsLoading = ref(false);  // separate loading for predictions
     // const marketStocks = ref([
     //   { ticker: 'AAPL', price: 213.88, change: 1.28, changePercent: 0.06 },
     //   { ticker: 'MSFT', price: 513.71, change: 2.82, changePercent: 0.55 },
@@ -270,14 +278,14 @@ export default {
 
     // 加载预测数据
     const loadPredictions = async () => {
-      loading.value = true;
+      predictionsLoading.value = true;
       try {
-        const response = await axios.get('/api/predict');  // 请求后端的预测数据
-        predictions.value = response.data.predictions || [];  // 将预测数据保存到 predictions
+        const response = await predictionAPI.getPredictions();
+        predictions.value = response.data.predictions || [];
       } catch (err) {
         console.error('Error fetching predictions:', err);
       } finally {
-        loading.value = false;
+        predictionsLoading.value = false;
       }
     };
 
@@ -423,6 +431,7 @@ export default {
     onMounted(() => {
       loadStockHoldings();
       loadMarketStocks();
+      // Load predictions only once on mount
       loadPredictions();
     });
 
@@ -443,6 +452,7 @@ export default {
       selectStock,
       formatPercent,
       predictions,
+      predictionsLoading,
       formatCurrency
     };
   }
@@ -869,25 +879,68 @@ export default {
 }
 
 .prediction-list {
-  list-style-type: none;
-  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .prediction-item {
   background: #f9fafb;
   padding: 16px;
-  margin-bottom: 12px;
   border-radius: 8px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.prediction-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.prediction-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .prediction-symbol {
   font-weight: 600;
+  color: #1f2937;
+  font-size: 16px;
+}
+
+.prediction-current {
+  font-size: 14px;
+  color: #6b7280;
 }
 
 .prediction-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.predicted-price {
+  font-weight: 600;
+  color: #1f2937;
   font-size: 16px;
+}
+
+.prediction-change {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.prediction-change.positive {
+  color: #10b981;
+}
+
+.prediction-change.negative {
+  color: #ef4444;
 }
 
 /* Responsive Design */

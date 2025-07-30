@@ -110,7 +110,7 @@ export const stockAPI = {
 // Prediction API functions
 export const predictionAPI = {
   getPredictions() {
-    return axios.get('/api/predict');
+    return api.get('/predict');
   }
 };
 

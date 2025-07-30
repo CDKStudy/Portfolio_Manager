@@ -152,8 +152,8 @@ app.use(express.json());
 app.get('/api/predict', async (req, res) => {
   try {
     const result = await predict();
-    res.json(reslt);
-  } catch (error)u {
+    res.json(result);
+  } catch (error) {
     console.error('Error in prediction process:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
