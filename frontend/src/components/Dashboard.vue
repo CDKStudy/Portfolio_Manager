@@ -2,7 +2,7 @@
   <div class="dashboard">
     <!-- Portfolio Summary Cards -->
     <section class="portfolio-summary">
-      <div class="summary-card total-portfolio">
+      <div class="summary-card total-portfolio clickable" @click="navigateToAnalytics">
         <div class="card-header">
           <span class="card-title">Total Portfolio Value</span>
           <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -12,6 +12,7 @@
         </div>
         <div class="card-content">
           <div class="card-value">${{ formatCurrency(portfolio.netWorth) }}</div>
+          <div class="card-hint">Click to view Analytics →</div>
           <!-- <div class="card-change positive">
             <span class="change-icon">📈</span>
             <span>+2.5% from last month</span>
@@ -19,7 +20,7 @@
         </div>
       </div>
 
-      <div class="summary-card stocks">
+      <div class="summary-card stocks clickable" @click="navigateToStock">
         <div class="card-header">
           <span class="card-title">Stocks</span>
           <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -29,6 +30,7 @@
         </div>
         <div class="card-content">
           <div class="card-value">${{ formatCurrency(stockHoldings.totalValue) }}</div>
+          <div class="card-hint">Click to view Stocks →</div>
           <!-- <div class="card-change positive">
             <span class="change-icon">📈</span>
             <span>+4.3% from last month</span>
@@ -36,7 +38,7 @@
         </div>
       </div>
 
-      <div class="summary-card funds">
+      <div class="summary-card funds clickable" @click="navigateToFund">
         <div class="card-header">
           <span class="card-title">Funds</span>
           <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,6 +48,7 @@
         </div>
         <div class="card-content">
           <div class="card-value">${{ formatCurrency(fundHoldings.totalValue) }}</div>
+          <div class="card-hint">Click to view Funds →</div>
           <!-- <div class="card-change negative">
             <span class="change-icon">📉</span>
             <span>-0.8% from last month</span>
@@ -53,7 +56,7 @@
         </div>
       </div>
 
-      <div class="summary-card cash">
+      <div class="summary-card cash clickable" @click="navigateToCash">
         <div class="card-header">
           <span class="card-title">Cash</span>
           <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,6 +66,7 @@
         </div>
         <div class="card-content">
           <div class="card-value">${{ formatCurrency(userInfo.cash) }}</div>
+          <div class="card-hint">Click to view Cash →</div>
           <!-- <div class="card-change neutral">
             <span>+0.1% interest rate</span>
           </div> -->
@@ -164,6 +168,7 @@ import {
   Tooltip
 } from 'chart.js';
 import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { Line } from 'vue-chartjs';
 import { portfolioAPI, stockAPI } from '../services/api';
 
@@ -184,6 +189,7 @@ export default {
     Line
   },
   setup() {
+    const router = useRouter();
     const portfolio = ref({
       totalItems: 0,
       totalValue: 45231.89,
@@ -357,6 +363,27 @@ export default {
       }).format(value);
     };
 
+    // Navigation functions
+    const navigateToAnalytics = () => {
+      console.log('Navigating to Analytics...');
+      router.push('/analytics');
+    };
+
+    const navigateToStock = () => {
+      console.log('Navigating to Stock...');
+      router.push('/stock');
+    };
+
+    const navigateToFund = () => {
+      console.log('Navigating to Fund...');
+      router.push('/fund');
+    };
+
+    const navigateToCash = () => {
+      console.log('Navigating to Cash...');
+      router.push('/cash');
+    };
+
     onMounted(() => {
       loadPortfolio();
 
@@ -376,7 +403,11 @@ export default {
       chartData,
       chartOptions,
       formatCurrency,
-      formatPercent
+      formatPercent,
+      navigateToAnalytics,
+      navigateToStock,
+      navigateToFund,
+      navigateToCash
     };
   }
 };
@@ -410,6 +441,40 @@ export default {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
+.summary-card.clickable {
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.summary-card.clickable::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(59, 130, 246, 0.02) 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.summary-card.clickable:hover::before {
+  opacity: 1;
+}
+
+.summary-card.clickable:hover {
+  border-color: #3b82f6;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(59, 130, 246, 0.15);
+}
+
+.summary-card.clickable:active {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.2);
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -440,6 +505,19 @@ export default {
   font-weight: 700;
   color: #1f2937;
   margin-bottom: 8px;
+}
+
+.card-hint {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.summary-card.clickable:hover .card-hint {
+  opacity: 1;
+  color: #3b82f6;
 }
 
 .card-change {
