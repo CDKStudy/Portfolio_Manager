@@ -96,7 +96,7 @@
             <input
               v-model="buyForm.ticker"
               type="text"
-              placeholder="e.g., 510300"
+              placeholder="e.g., 510300.SS"
               required
               class="form-input"
             />

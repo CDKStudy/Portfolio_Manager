@@ -8,7 +8,8 @@
           <i class="card-icon">💰</i>
         </div>
         <div class="card-content">
-          <div class="card-value">${{ formatCurrency(portfolio.netWorth) }}</div>
+          <div class="card-value">${{ formatCurrency(stockHoldings.totalValue +fundHoldings.totalValue +userInfo.cash)
+}}</div>
           <!-- <div class="card-change positive">
             <span class="change-icon">📈</span>
             <span>+2.5% from last month</span>
