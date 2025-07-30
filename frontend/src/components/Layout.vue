@@ -52,12 +52,6 @@
             <span>AI Agent</span>
           </router-link>
         </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link">
-            <i class="nav-icon">⚙️</i>
-            <span>Settings</span>
-          </a>
-        </li>
       </ul>
       
       <div class="user-profile-sidebar">
