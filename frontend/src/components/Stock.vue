@@ -1,7 +1,7 @@
 <template>
   <div class="stock-page">
     <!-- Stock Management -->
-    <div class="asset-management">
+    <div class="asset-management" ref="stockTradingCard">
       <div class="asset-header">
         <h2>Stock Trading</h2>
         <button @click="showBuyModal = true" class="btn btn-primary">
@@ -64,7 +64,7 @@
 
     <!-- Market Watch -->
     <div class="market-watch-section">
-      <div class="market-watch-card">
+      <div class="market-watch-card" ref="marketWatchCard">
         <h3>Stock Market Watch</h3>
         <div class="market-list">
           <div 
@@ -284,7 +284,7 @@
 </template>
 
 <script>
-import { onMounted, onUnmounted, ref, computed } from 'vue';
+import { onMounted, onUnmounted, ref, computed, nextTick, watch } from 'vue';
 import { portfolioAPI, stockAPI, predictionAPI } from '../services/api';
 
 export default {
@@ -324,6 +324,18 @@ export default {
       quantity: 1,
       price: null
     });
+
+    // Refs for height synchronization
+    const stockTradingCard = ref(null);
+    const marketWatchCard = ref(null);
+
+    // Function to sync market watch height with stock trading card
+    const syncMarketWatchHeight = () => {
+      if (stockTradingCard.value && marketWatchCard.value) {
+        const stockHeight = stockTradingCard.value.offsetHeight;
+        marketWatchCard.value.style.height = `${stockHeight}px`;
+      }
+    };
 
     // Load stock holdings
     const loadStockHoldings = async () => {
@@ -578,7 +590,19 @@ export default {
           trainingStartTime.value = null;
         }
       });
+
+      // Sync market watch height with stock trading card
+      nextTick(() => {
+        syncMarketWatchHeight();
+      });
     });
+
+    // Watch for changes in stockHoldings to resync height
+    watch(stockHoldings, () => {
+      nextTick(() => {
+        syncMarketWatchHeight();
+      });
+    }, { deep: true });
 
     onUnmounted(() => {
       if (unsubscribe) {
@@ -612,7 +636,10 @@ export default {
       viewTaskResults,
       formatDate,
       getStatusText,
-      formatCurrency
+      formatCurrency,
+      stockTradingCard,
+      marketWatchCard,
+      syncMarketWatchHeight
     };
   }
 };
@@ -626,6 +653,7 @@ export default {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 24px;
+  align-items: start;
 }
 
 /* Asset Management */
@@ -750,7 +778,8 @@ export default {
   border-radius: 16px;
   padding: 24px;
   border: 1px solid #e5e7eb;
-  height: fit-content;
+  display: flex;
+  flex-direction: column;
 }
 
 .market-watch-card h3 {
@@ -764,8 +793,7 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  /* Limit the height so the list can scroll if there are too many items */
-  max-height: 300px;
+  flex: 1;
   /* Enable vertical scrolling when content exceeds the height */
   overflow-y: auto;
   /* Add padding to the right to prevent scroll bar from overlapping content */
