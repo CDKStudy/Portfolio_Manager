@@ -1,495 +1,495 @@
-# 投资组合管理系统功能流程图
+# Portfolio Management System Flowcharts
 
-## 1. 股票买卖流程
+## 1. Stock Trading Flow
 
-### 买入股票流程
+### Buy Stock Flow
 
 ```mermaid
 flowchart TD
-    A[用户点击买入股票] --> B[选择股票代码]
-    B --> C[输入购买数量]
-    C --> D[选择购买价格]
-    D --> E{是否使用市价?}
-    E -->|是| F[获取实时价格]
-    E -->|否| G[使用用户输入价格]
-    F --> H[验证用户现金余额]
+    A[User clicks Buy Stock] --> B[Select Stock Ticker]
+    B --> C[Enter Quantity]
+    C --> D[Select Price Type]
+    D --> E{Use Market Price?}
+    E -->|Yes| F[Get Real-time Price]
+    E -->|No| G[Use User Input Price]
+    F --> H[Validate User Cash Balance]
     G --> H
-    H --> I{现金是否足够?}
-    I -->|否| J[显示余额不足错误]
-    I -->|是| K[调用买入API]
-    K --> L[后端验证数据]
-    L --> M{验证通过?}
-    M -->|否| N[返回验证错误]
-    M -->|是| O[获取当前市场价格]
-    O --> P[检查现金余额]
-    P --> Q{余额充足?}
-    Q -->|否| R[返回余额不足]
-    Q -->|是| S[创建交易记录]
-    S --> T[更新持仓信息]
-    T --> U[扣除现金余额]
-    U --> V[更新用户净资产]
-    V --> W[返回成功响应]
-    W --> X[前端显示成功消息]
-    X --> Y[刷新投资组合数据]
-    Y --> Z[更新界面显示]
+    H --> I{Sufficient Cash?}
+    I -->|No| J[Display Insufficient Balance Error]
+    I -->|Yes| K[Call Buy API]
+    K --> L[Backend Validate Data]
+    L --> M{Validation Passed?}
+    M -->|No| N[Return Validation Error]
+    M -->|Yes| O[Get Current Market Price]
+    O --> P[Check Cash Balance]
+    P --> Q{Sufficient Balance?}
+    Q -->|No| R[Return Insufficient Balance]
+    Q -->|Yes| S[Create Transaction Record]
+    S --> T[Update Holdings]
+    T --> U[Deduct Cash Balance]
+    U --> V[Update User Net Worth]
+    V --> W[Return Success Response]
+    W --> X[Frontend Display Success Message]
+    X --> Y[Refresh Portfolio Data]
+    Y --> Z[Update Interface Display]
 ```
 
-### 卖出股票流程
+### Sell Stock Flow
 
 ```mermaid
 flowchart TD
-    A[用户点击卖出股票] --> B[选择股票代码]
-    B --> C[输入卖出数量]
-    C --> D[选择卖出价格]
-    D --> E{是否使用市价?}
-    E -->|是| F[获取实时价格]
-    E -->|否| G[使用用户输入价格]
-    F --> H[验证持仓数量]
+    A[User clicks Sell Stock] --> B[Select Stock Ticker]
+    B --> C[Enter Quantity]
+    C --> D[Select Price Type]
+    D --> E{Use Market Price?}
+    E -->|Yes| F[Get Real-time Price]
+    E -->|No| G[Use User Input Price]
+    F --> H[Validate Holdings Quantity]
     G --> H
-    H --> I{持仓是否足够?}
-    I -->|否| J[显示持仓不足错误]
-    I -->|是| K[调用卖出API]
-    K --> L[后端验证数据]
-    L --> M{验证通过?}
-    M -->|否| N[返回验证错误]
-    M -->|是| O[获取当前市场价格]
-    O --> P[检查持仓数量]
-    P --> Q{持仓充足?}
-    Q -->|否| R[返回持仓不足]
-    Q -->|是| S[创建交易记录]
-    S --> T[更新持仓信息]
-    T --> U[增加现金余额]
-    U --> V[更新用户净资产]
-    V --> W[返回成功响应]
-    W --> X[前端显示成功消息]
-    X --> Y[刷新投资组合数据]
-    Y --> Z[更新界面显示]
+    H --> I{Sufficient Holdings?}
+    I -->|No| J[Display Insufficient Holdings Error]
+    I -->|Yes| K[Call Sell API]
+    K --> L[Backend Validate Data]
+    L --> M{Validation Passed?}
+    M -->|No| N[Return Validation Error]
+    M -->|Yes| O[Get Current Market Price]
+    O --> P[Check Holdings Quantity]
+    P --> Q{Sufficient Holdings?}
+    Q -->|No| R[Return Insufficient Holdings]
+    Q -->|Yes| S[Create Transaction Record]
+    S --> T[Update Holdings]
+    T --> U[Increase Cash Balance]
+    U --> V[Update User Net Worth]
+    V --> W[Return Success Response]
+    W --> X[Frontend Display Success Message]
+    X --> Y[Refresh Portfolio Data]
+    Y --> Z[Update Interface Display]
 ```
 
-## 2. 基金买卖流程
+## 2. Fund Trading Flow
 
-### 买入基金流程
+### Buy Fund Flow
 
 ```mermaid
 flowchart TD
-    A[用户点击买入基金] --> B[选择基金代码]
-    B --> C[输入购买单位数]
-    C --> D[选择购买价格]
-    D --> E{是否使用市价?}
-    E -->|是| F[获取实时基金价格]
-    E -->|否| G[使用用户输入价格]
-    F --> H[验证用户现金余额]
+    A[User clicks Buy Fund] --> B[Select Fund Ticker]
+    B --> C[Enter Units Quantity]
+    C --> D[Select Price Type]
+    D --> E{Use Market Price?}
+    E -->|Yes| F[Get Real-time Fund Price]
+    E -->|No| G[Use User Input Price]
+    F --> H[Validate User Cash Balance]
     G --> H
-    H --> I{现金是否足够?}
-    I -->|否| J[显示余额不足错误]
-    I -->|是| K[调用买入基金API]
-    K --> L[后端验证数据]
-    L --> M{验证通过?}
-    M -->|否| N[返回验证错误]
-    M -->|是| O[获取当前基金价格]
-    O --> P[检查现金余额]
-    P --> Q{余额充足?}
-    Q -->|否| R[返回余额不足]
-    Q -->|是| S[创建基金交易记录]
-    S --> T[更新基金持仓信息]
-    T --> U[扣除现金余额]
-    U --> V[更新用户净资产]
-    V --> W[返回成功响应]
-    W --> X[前端显示成功消息]
-    X --> Y[刷新投资组合数据]
-    Y --> Z[更新界面显示]
+    H --> I{Sufficient Cash?}
+    I -->|No| J[Display Insufficient Balance Error]
+    I -->|Yes| K[Call Buy Fund API]
+    K --> L[Backend Validate Data]
+    L --> M{Validation Passed?}
+    M -->|No| N[Return Validation Error]
+    M -->|Yes| O[Get Current Fund Price]
+    O --> P[Check Cash Balance]
+    P --> Q{Sufficient Balance?}
+    Q -->|No| R[Return Insufficient Balance]
+    Q -->|Yes| S[Create Fund Transaction Record]
+    S --> T[Update Fund Holdings]
+    T --> U[Deduct Cash Balance]
+    U --> V[Update User Net Worth]
+    V --> W[Return Success Response]
+    W --> X[Frontend Display Success Message]
+    X --> Y[Refresh Portfolio Data]
+    Y --> Z[Update Interface Display]
 ```
 
-### 卖出基金流程
+### Sell Fund Flow
 
 ```mermaid
 flowchart TD
-    A[用户点击卖出基金] --> B[选择基金代码]
-    B --> C[输入卖出单位数]
-    C --> D[选择卖出价格]
-    D --> E{是否使用市价?}
-    E -->|是| F[获取实时基金价格]
-    E -->|否| G[使用用户输入价格]
-    F --> H[验证基金持仓数量]
+    A[User clicks Sell Fund] --> B[Select Fund Ticker]
+    B --> C[Enter Units Quantity]
+    C --> D[Select Price Type]
+    D --> E{Use Market Price?}
+    E -->|Yes| F[Get Real-time Fund Price]
+    E -->|No| G[Use User Input Price]
+    F --> H[Validate Fund Holdings Quantity]
     G --> H
-    H --> I{持仓是否足够?}
-    I -->|否| J[显示持仓不足错误]
-    I -->|是| K[调用卖出基金API]
-    K --> L[后端验证数据]
-    L --> M{验证通过?}
-    M -->|否| N[返回验证错误]
-    M -->|是| O[获取当前基金价格]
-    O --> P[检查基金持仓数量]
-    P --> Q{持仓充足?}
-    Q -->|否| R[返回持仓不足]
-    Q -->|是| S[创建基金交易记录]
-    S --> T[更新基金持仓信息]
-    T --> U[增加现金余额]
-    U --> V[更新用户净资产]
-    V --> W[返回成功响应]
-    W --> X[前端显示成功消息]
-    X --> Y[刷新投资组合数据]
-    Y --> Z[更新界面显示]
+    H --> I{Sufficient Holdings?}
+    I -->|No| J[Display Insufficient Holdings Error]
+    I -->|Yes| K[Call Sell Fund API]
+    K --> L[Backend Validate Data]
+    L --> M{Validation Passed?}
+    M -->|No| N[Return Validation Error]
+    M -->|Yes| O[Get Current Fund Price]
+    O --> P[Check Fund Holdings Quantity]
+    P --> Q{Sufficient Holdings?}
+    Q -->|No| R[Return Insufficient Holdings]
+    Q -->|Yes| S[Create Fund Transaction Record]
+    S --> T[Update Fund Holdings]
+    T --> U[Increase Cash Balance]
+    U --> V[Update User Net Worth]
+    V --> W[Return Success Response]
+    W --> X[Frontend Display Success Message]
+    X --> Y[Refresh Portfolio Data]
+    Y --> Z[Update Interface Display]
 ```
 
-## 3. 现金管理流程
+## 3. Cash Management Flow
 
-### 存款流程
+### Deposit Flow
 
 ```mermaid
 flowchart TD
-    A[用户点击存款] --> B[输入存款金额]
-    B --> C[验证金额格式]
-    C --> D{金额是否有效?}
-    D -->|否| E[显示金额格式错误]
-    D -->|是| F[调用存款API]
-    F --> G[后端验证数据]
-    G --> H{验证通过?}
-    H -->|否| I[返回验证错误]
-    H -->|是| J[更新用户现金余额]
-    J --> K[创建现金交易记录]
-    K --> L[更新用户净资产]
-    L --> M[返回成功响应]
-    M --> N[前端显示成功消息]
-    N --> O[刷新现金余额显示]
-    O --> P[更新投资组合总价值]
+    A[User clicks Deposit] --> B[Enter Deposit Amount]
+    B --> C[Validate Amount Format]
+    C --> D{Valid Amount?}
+    D -->|No| E[Display Amount Format Error]
+    D -->|Yes| F[Call Deposit API]
+    F --> G[Backend Validate Data]
+    G --> H{Validation Passed?}
+    H -->|No| I[Return Validation Error]
+    H -->|Yes| J[Update User Cash Balance]
+    J --> K[Create Cash Transaction Record]
+    K --> L[Update User Net Worth]
+    L --> M[Return Success Response]
+    M --> N[Frontend Display Success Message]
+    N --> O[Refresh Cash Balance Display]
+    O --> P[Update Portfolio Total Value]
 ```
 
-### 取款流程
+### Withdraw Flow
 
 ```mermaid
 flowchart TD
-    A[用户点击取款] --> B[输入取款金额]
-    B --> C[验证金额格式]
-    C --> D{金额是否有效?}
-    D -->|否| E[显示金额格式错误]
-    D -->|是| F[调用取款API]
-    F --> G[后端验证数据]
-    G --> H{验证通过?}
-    H -->|否| I[返回验证错误]
-    H -->|是| J[检查现金余额]
-    J --> K{余额是否足够?}
-    K -->|否| L[返回余额不足错误]
-    K -->|是| M[更新用户现金余额]
-    M --> N[创建现金交易记录]
-    N --> O[更新用户净资产]
-    O --> P[返回成功响应]
-    P --> Q[前端显示成功消息]
-    Q --> R[刷新现金余额显示]
-    R --> S[更新投资组合总价值]
+    A[User clicks Withdraw] --> B[Enter Withdraw Amount]
+    B --> C[Validate Amount Format]
+    C --> D{Valid Amount?}
+    D -->|No| E[Display Amount Format Error]
+    D -->|Yes| F[Call Withdraw API]
+    F --> G[Backend Validate Data]
+    G --> H{Validation Passed?}
+    H -->|No| I[Return Validation Error]
+    H -->|Yes| J[Check Cash Balance]
+    J --> K{Sufficient Balance?}
+    K -->|No| L[Return Insufficient Balance Error]
+    K -->|Yes| M[Update User Cash Balance]
+    M --> N[Create Cash Transaction Record]
+    N --> O[Update User Net Worth]
+    O --> P[Return Success Response]
+    P --> Q[Frontend Display Success Message]
+    Q --> R[Refresh Cash Balance Display]
+    R --> S[Update Portfolio Total Value]
 ```
 
-## 4. AI预测流程
+## 4. AI Prediction Flow
 
-### 启动预测流程
+### Start Prediction Flow
 
 ```mermaid
 flowchart TD
-    A[用户点击启动预测] --> B[显示预测状态]
-    B --> C[调用预测API]
-    C --> D[后端创建预测任务]
-    D --> E[返回任务ID]
-    E --> F[前端显示训练中状态]
-    F --> G[开始后台预测流程]
-    G --> H[获取股票列表]
-    H --> I[遍历每只股票]
-    I --> J[获取历史数据]
-    J --> K[数据预处理]
-    K --> L[训练LSTM模型]
-    L --> M[执行预测]
-    M --> N[保存预测结果]
-    N --> O{还有股票?}
-    O -->|是| I
-    O -->|否| P[更新任务状态为完成]
-    P --> Q[前端轮询任务状态]
-    Q --> R{任务完成?}
-    R -->|否| Q
-    R -->|是| S[显示预测结果]
-    S --> T[更新预测界面]
+    A[User clicks Start Prediction] --> B[Display Prediction Status]
+    B --> C[Call Prediction API]
+    C --> D[Backend Create Prediction Task]
+    D --> E[Return Task ID]
+    E --> F[Frontend Display Training Status]
+    F --> G[Start Background Prediction Process]
+    G --> H[Get Stock List]
+    H --> I[Iterate Each Stock]
+    I --> J[Get Historical Data]
+    J --> K[Data Preprocessing]
+    K --> L[Train LSTM Model]
+    L --> M[Execute Prediction]
+    M --> N[Save Prediction Results]
+    N --> O{More Stocks?}
+    O -->|Yes| I
+    O -->|No| P[Update Task Status to Complete]
+    P --> Q[Frontend Poll Task Status]
+    Q --> R{Task Completed?}
+    R -->|No| Q
+    R -->|Yes| S[Display Prediction Results]
+    S --> T[Update Prediction Interface]
 ```
 
-### 预测结果查看流程
+### View Prediction Results Flow
 
 ```mermaid
 flowchart TD
-    A[用户查看预测结果] --> B[获取预测任务列表]
-    B --> C[选择特定任务]
-    C --> D[调用获取任务API]
-    D --> E[后端查询任务数据]
-    E --> F{任务存在?}
-    F -->|否| G[显示任务不存在]
-    F -->|是| H[返回任务详情]
-    H --> I[解析预测结果]
-    I --> J[格式化显示数据]
-    J --> K[显示预测图表]
-    K --> L[显示预测表格]
-    L --> M[显示置信度指标]
-    M --> N[提供导出功能]
+    A[User views prediction results] --> B[Get prediction task list]
+    B --> C[Select specific task]
+    C --> D[Call get task API]
+    D --> E[Backend query task data]
+    E --> F{Task exists?}
+    F -->|No| G[Display task not found]
+    F -->|Yes| H[Return task details]
+    H --> I[Parse prediction results]
+    I --> J[Format display data]
+    J --> K[Display prediction charts]
+    K --> L[Display prediction table]
+    L --> M[Display confidence metrics]
+    M --> N[Provide export functionality]
 ```
 
-## 5. AI聊天流程
+## 5. AI Chat Flow
 
-### 智能投资建议流程
+### Smart Investment Advice Flow
 
 ```mermaid
 flowchart TD
-    A[用户输入问题] --> B[获取投资组合上下文]
-    B --> C[调用AI聊天API]
-    C --> D[后端获取用户数据]
-    D --> E[构建投资组合上下文]
-    E --> F[调用AI服务]
-    F --> G[AI分析投资组合]
-    G --> H[生成个性化建议]
-    H --> I[返回AI回复]
-    I --> J[前端显示回复]
-    J --> K[格式化显示]
-    K --> L[提供后续操作建议]
-    L --> M[记录对话历史]
+    A[User inputs question] --> B[Get portfolio context]
+    B --> C[Call AI chat API]
+    C --> D[Backend get user data]
+    D --> E[Build portfolio context]
+    E --> F[Call AI service]
+    F --> G[AI analyze portfolio]
+    G --> H[Generate personalized advice]
+    H --> I[Return AI response]
+    I --> J[Frontend display response]
+    J --> K[Format display]
+    K --> L[Provide follow-up action suggestions]
+    L --> M[Record conversation history]
 ```
 
-## 6. 投资组合查看流程
+## 6. Portfolio View Flow
 
-### 投资组合数据加载流程
+### Portfolio Data Loading Flow
 
 ```mermaid
 flowchart TD
-    A[用户访问投资组合页面] --> B[显示加载状态]
-    B --> C[调用投资组合API]
-    C --> D[后端获取用户数据]
-    D --> E[查询用户持仓]
-    E --> F[获取实时价格数据]
-    F --> G[计算持仓价值]
-    G --> H[计算盈亏情况]
-    H --> I[计算资产配置]
-    I --> J[返回完整数据]
-    J --> K[前端渲染界面]
-    K --> L[显示投资组合摘要]
-    L --> M[显示持仓列表]
-    M --> N[显示盈亏图表]
-    N --> O[显示资产配置图]
-    O --> P[提供数据刷新功能]
+    A[User visits portfolio page] --> B[Display loading status]
+    B --> C[Call portfolio API]
+    C --> D[Backend get user data]
+    D --> E[Query user holdings]
+    E --> F[Get real-time price data]
+    F --> G[Calculate holdings value]
+    G --> H[Calculate profit/loss]
+    H --> I[Calculate asset allocation]
+    I --> J[Return complete data]
+    J --> K[Frontend render interface]
+    K --> L[Display portfolio summary]
+    L --> M[Display holdings list]
+    M --> N[Display profit/loss charts]
+    N --> O[Display asset allocation chart]
+    O --> P[Provide data refresh functionality]
 ```
 
-### 实时数据更新流程
+### Real-time Data Update Flow
 
 ```mermaid
 flowchart TD
-    A[定时更新触发] --> B[获取持仓列表]
-    B --> C[遍历每只股票/基金]
-    C --> D[调用价格API]
-    D --> E[获取最新价格]
-    E --> F[计算新价值]
-    F --> G[计算新盈亏]
-    G --> H{还有持仓?}
-    H -->|是| C
-    H -->|否| I[更新总价值]
-    I --> J[更新盈亏统计]
-    J --> K[更新界面显示]
-    K --> L[保存更新历史]
-    L --> M[触发通知]
+    A[Scheduled update trigger] --> B[Get holdings list]
+    B --> C[Iterate each stock/fund]
+    C --> D[Call price API]
+    D --> E[Get latest price]
+    E --> F[Calculate new value]
+    F --> G[Calculate new profit/loss]
+    G --> H{More holdings?}
+    H -->|Yes| C
+    H -->|No| I[Update total value]
+    I --> J[Update profit/loss statistics]
+    J --> K[Update interface display]
+    K --> L[Save update history]
+    L --> M[Trigger notifications]
 ```
 
-## 7. 交易历史查看流程
+## 7. Transaction History View Flow
 
-### 交易记录查询流程
+### Transaction Record Query Flow
 
 ```mermaid
 flowchart TD
-    A[用户查看交易历史] --> B[选择时间范围]
-    B --> C[选择资产类型]
-    C --> D[调用交易历史API]
-    D --> E[后端查询数据库]
-    E --> F[按条件筛选]
-    F --> G[排序交易记录]
-    G --> H[分页处理]
-    H --> I[返回交易数据]
-    I --> J[前端渲染表格]
-    J --> K[显示交易详情]
-    K --> L[提供筛选功能]
-    L --> M[提供导出功能]
-    M --> N[显示统计信息]
+    A[User views transaction history] --> B[Select time range]
+    B --> C[Select asset type]
+    C --> D[Call transaction history API]
+    D --> E[Backend query database]
+    E --> F[Filter by conditions]
+    F --> G[Sort transaction records]
+    G --> H[Pagination processing]
+    H --> I[Return transaction data]
+    I --> J[Frontend render table]
+    J --> K[Display transaction details]
+    K --> L[Provide filter functionality]
+    L --> M[Provide export functionality]
+    M --> N[Display statistics information]
 ```
 
-## 8. 资产配置分析流程
+## 8. Asset Allocation Analysis Flow
 
-### 资产配置计算流程
+### Asset Allocation Calculation Flow
 
 ```mermaid
 flowchart TD
-    A[用户查看资产配置] --> B[获取所有持仓数据]
-    B --> C[获取实时价格]
-    C --> D[计算各类资产价值]
-    D --> E[计算现金价值]
-    E --> F[计算股票价值]
-    F --> G[计算基金价值]
-    G --> H[计算总资产价值]
-    H --> I[计算各类资产占比]
-    I --> J[生成配置图表]
-    J --> K[显示配置详情]
-    K --> L[提供配置建议]
-    L --> M[显示历史配置变化]
+    A[User views asset allocation] --> B[Get all holdings data]
+    B --> C[Get real-time prices]
+    C --> D[Calculate various asset values]
+    D --> E[Calculate cash value]
+    E --> F[Calculate stock value]
+    F --> G[Calculate fund value]
+    G --> H[Calculate total asset value]
+    H --> I[Calculate asset allocation percentages]
+    I --> J[Generate allocation charts]
+    J --> K[Display allocation details]
+    K --> L[Provide allocation recommendations]
+    L --> M[Display historical allocation changes]
 ```
 
-## 9. 市场数据查看流程
+## 9. Market Data View Flow
 
-### 实时市场数据流程
+### Real-time Market Data Flow
 
 ```mermaid
 flowchart TD
-    A[用户查看市场数据] --> B[获取热门股票列表]
-    B --> C[调用市场数据API]
-    C --> D[获取实时价格]
-    D --> E[获取涨跌幅数据]
-    E --> F[获取成交量数据]
-    F --> G[格式化显示数据]
-    G --> H[显示价格图表]
-    H --> I[显示涨跌颜色]
-    I --> J[提供搜索功能]
-    J --> K[提供排序功能]
-    K --> L[提供筛选功能]
-    L --> M[定时自动刷新]
+    A[User views market data] --> B[Get popular stock list]
+    B --> C[Call market data API]
+    C --> D[Get real-time prices]
+    D --> E[Get price change data]
+    E --> F[Get volume data]
+    F --> G[Format display data]
+    G --> H[Display price charts]
+    H --> I[Display price change colors]
+    I --> J[Provide search functionality]
+    J --> K[Provide sorting functionality]
+    K --> L[Provide filter functionality]
+    L --> M[Scheduled auto refresh]
 ```
 
-## 10. 错误处理流程
+## 10. Error Handling Flow
 
-### 通用错误处理流程
+### General Error Handling Flow
 
 ```mermaid
 flowchart TD
-    A[操作执行] --> B{是否成功?}
-    B -->|是| C[正常流程]
-    B -->|否| D[捕获错误]
-    D --> E[记录错误日志]
-    E --> F[分析错误类型]
-    F --> G{网络错误?}
-    G -->|是| H[显示网络错误]
-    G -->|否| I{验证错误?}
-    I -->|是| J[显示验证错误]
-    I -->|否| K{权限错误?}
-    K -->|是| L[显示权限错误]
-    K -->|否| M{系统错误?}
-    M -->|是| N[显示系统错误]
-    M -->|否| O[显示通用错误]
-    H --> P[提供重试选项]
+    A[Operation execution] --> B{Success?}
+    B -->|Yes| C[Normal flow]
+    B -->|No| D[Catch error]
+    D --> E[Log error]
+    E --> F[Analyze error type]
+    F --> G{Network error?}
+    G -->|Yes| H[Display network error]
+    G -->|No| I{Validation error?}
+    I -->|Yes| J[Display validation error]
+    I -->|No| K{Permission error?}
+    K -->|Yes| L[Display permission error]
+    K -->|No| M{System error?}
+    M -->|Yes| N[Display system error]
+    M -->|No| O[Display general error]
+    H --> P[Provide retry options]
     J --> P
     L --> P
     N --> P
     O --> P
-    P --> Q[记录用户操作]
-    Q --> R[提供帮助信息]
+    P --> Q[Record user operation]
+    Q --> R[Provide help information]
 ```
 
-## 11. 数据同步流程
+## 11. Data Synchronization Flow
 
-### 前后端数据同步流程
+### Frontend-Backend Data Sync Flow
 
 ```mermaid
 flowchart TD
-    A[前端发起请求] --> B[API调用]
-    B --> C[后端处理]
-    C --> D[数据库操作]
-    D --> E[返回响应]
-    E --> F[前端更新状态]
-    F --> G[更新界面显示]
-    G --> H[触发相关更新]
-    H --> I[更新缓存]
-    I --> J[记录操作日志]
-    J --> K[通知其他组件]
-    K --> L[完成同步]
+    A[Frontend initiate request] --> B[API call]
+    B --> C[Backend processing]
+    C --> D[Database operation]
+    D --> E[Return response]
+    E --> F[Frontend update state]
+    F --> G[Update interface display]
+    G --> H[Trigger related updates]
+    H --> I[Update cache]
+    I --> J[Record operation log]
+    J --> K[Notify other components]
+    K --> L[Complete synchronization]
 ```
 
-## 12. 用户认证流程
+## 12. User Authentication Flow
 
-### 用户登录流程
+### User Login Flow
 
 ```mermaid
 flowchart TD
-    A[用户输入登录信息] --> B[验证输入格式]
-    B --> C{格式正确?}
-    C -->|否| D[显示格式错误]
-    C -->|是| E[调用登录API]
-    E --> F[后端验证用户]
-    F --> G{验证成功?}
-    G -->|否| H[显示登录失败]
-    G -->|是| I[生成用户会话]
-    I --> J[返回用户信息]
-    J --> K[前端保存用户状态]
-    K --> L[跳转到主页面]
-    L --> M[加载用户数据]
+    A[User inputs login info] --> B[Validate input format]
+    B --> C{Format correct?}
+    C -->|No| D[Display format error]
+    C -->|Yes| E[Call login API]
+    E --> F[Backend validate user]
+    F --> G{Validation successful?}
+    G -->|No| H[Display login failure]
+    G -->|Yes| I[Generate user session]
+    I --> J[Return user information]
+    J --> K[Frontend save user state]
+    K --> L[Navigate to main page]
+    L --> M[Load user data]
 ```
 
-## 13. 系统监控流程
+## 13. System Monitoring Flow
 
-### 性能监控流程
+### Performance Monitoring Flow
 
 ```mermaid
 flowchart TD
-    A[系统运行] --> B[监控API响应时间]
-    B --> C[监控数据库性能]
-    C --> D[监控内存使用]
-    D --> E[监控CPU使用]
-    E --> F[监控网络请求]
-    F --> G[分析性能指标]
-    G --> H{性能是否正常?}
-    H -->|否| I[触发告警]
-    H -->|是| J[记录性能日志]
-    I --> K[发送通知]
-    K --> L[记录告警日志]
-    J --> M[更新监控面板]
+    A[System running] --> B[Monitor API response time]
+    B --> C[Monitor database performance]
+    C --> D[Monitor memory usage]
+    D --> E[Monitor CPU usage]
+    E --> F[Monitor network requests]
+    F --> G[Analyze performance metrics]
+    G --> H{Performance normal?}
+    H -->|No| I[Trigger alert]
+    H -->|Yes| J[Record performance log]
+    I --> K[Send notification]
+    K --> L[Record alert log]
+    J --> M[Update monitoring dashboard]
     L --> M
-    M --> N[继续监控]
+    M --> N[Continue monitoring]
 ```
 
-## 14. 数据备份流程
+## 14. Data Backup Flow
 
-### 数据库备份流程
+### Database Backup Flow
 
 ```mermaid
 flowchart TD
-    A[定时备份触发] --> B[检查备份配置]
-    B --> C[连接数据库]
-    C --> D[创建备份文件]
-    D --> E[压缩备份数据]
-    E --> F[上传到备份存储]
-    F --> G[验证备份完整性]
-    G --> H{备份成功?}
-    H -->|否| I[记录备份失败]
-    H -->|是| J[记录备份成功]
-    I --> K[发送失败通知]
-    J --> L[清理旧备份]
-    K --> M[重试备份]
-    L --> N[更新备份日志]
+    A[Scheduled backup trigger] --> B[Check backup configuration]
+    B --> C[Connect to database]
+    C --> D[Create backup file]
+    D --> E[Compress backup data]
+    E --> F[Upload to backup storage]
+    F --> G[Verify backup integrity]
+    G --> H{Backup successful?}
+    H -->|No| I[Record backup failure]
+    H -->|Yes| J[Record backup success]
+    I --> K[Send failure notification]
+    J --> L[Clean old backups]
+    K --> M[Retry backup]
+    L --> N[Update backup log]
     M --> N
-    N --> O[完成备份流程]
+    N --> O[Complete backup process]
 ```
 
-## 15. 部署流程
+## 15. Deployment Flow
 
-### 系统部署流程
+### System Deployment Flow
 
 ```mermaid
 flowchart TD
-    A[代码提交] --> B[触发CI/CD]
-    B --> C[运行测试]
-    C --> D{测试通过?}
-    D -->|否| E[测试失败通知]
-    D -->|是| F[构建应用]
-    F --> G[运行安全检查]
-    G --> H{安全检查通过?}
-    H -->|否| I[安全漏洞通知]
-    H -->|是| J[部署到测试环境]
-    J --> K[运行集成测试]
-    K --> L{集成测试通过?}
-    L -->|否| M[回滚部署]
-    L -->|是| N[部署到生产环境]
-    N --> O[运行健康检查]
-    O --> P{健康检查通过?}
-    P -->|否| Q[回滚生产部署]
-    P -->|是| R[部署成功通知]
-    Q --> S[记录部署失败]
-    R --> T[监控系统状态]
+    A[Code commit] --> B[Trigger CI/CD]
+    B --> C[Run tests]
+    C --> D{Tests passed?}
+    D -->|No| E[Test failure notification]
+    D -->|Yes| F[Build application]
+    F --> G[Run security check]
+    G --> H{Security check passed?}
+    H -->|No| I[Security vulnerability notification]
+    H -->|Yes| J[Deploy to test environment]
+    J --> K[Run integration tests]
+    K --> L{Integration tests passed?}
+    L -->|No| M[Rollback deployment]
+    L -->|Yes| N[Deploy to production]
+    N --> O[Run health check]
+    O --> P{Health check passed?}
+    P -->|No| Q[Rollback production deployment]
+    P -->|Yes| R[Deployment success notification]
+    Q --> S[Record deployment failure]
+    R --> T[Monitor system status]
     S --> T
-    T --> U[完成部署流程]
+    T --> U[Complete deployment process]
 ```
 
-这些流程图详细描述了系统中各个功能的完整执行流程，包括正常流程、异常处理和错误恢复机制。每个流程都考虑了用户体验、系统性能和错误处理等方面。 
+These flowcharts detail the complete execution flow of various functions in the system, including normal processes, exception handling, and error recovery mechanisms. Each flow considers user experience, system performance, and error handling aspects. 
