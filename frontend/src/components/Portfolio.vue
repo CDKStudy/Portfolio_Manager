@@ -89,7 +89,7 @@
       
       <div class="user-profile-sidebar">
         <div class="user-avatar">
-          <span>JD</span>
+          <span>PZ</span>
           </div>
         <div class="user-info">
           <div class="user-name">John Doe</div>

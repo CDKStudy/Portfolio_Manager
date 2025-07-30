@@ -81,11 +81,11 @@
       
       <div class="user-profile-sidebar">
         <div class="user-avatar">
-          <span>JD</span>
+          <span>PZ</span>
         </div>
         <div class="user-info">
-          <div class="user-name">John Doe</div>
-          <div class="user-email">john.doe@example.com</div>
+          <div class="user-name">PioneerZ</div>
+          <div class="user-email">PioneerZ@gmail.com</div>
         </div>
       </div>
     </nav>
