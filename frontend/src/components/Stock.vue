@@ -888,7 +888,7 @@ export default {
   width: 40px;
   height: 40px;
   border: 4px solid #f3f4f6;
-  border-top: 4px solid #6366f1;
+  border-top: 4px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 16px;
@@ -927,12 +927,12 @@ export default {
 }
 
 .btn-primary {
-  background: #6366f1;
+  background: #3b82f6;
   color: white;
 }
 
 .btn-primary:hover {
-  background: #5856eb;
+  background: #2563eb;
   transform: translateY(-1px);
 }
 
@@ -1071,8 +1071,8 @@ export default {
 
 .form-input:focus {
   outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .modal-actions {
@@ -1126,8 +1126,8 @@ export default {
 .training-time {
   font-family: 'Courier New', monospace;
   font-size: 14px;
-  color: #6366f1;
-  background: #f0f0ff;
+  color: #3b82f6;
+  background: #eff6ff;
   padding: 4px 8px;
   border-radius: 4px;
   font-weight: 500;
@@ -1202,8 +1202,8 @@ export default {
 }
 
 .task-item.task-active {
-  border-color: #6366f1;
-  background: #f8faff;
+  border-color: #3b82f6;
+  background: #eff6ff;
 }
 
 .task-info {
@@ -1279,8 +1279,8 @@ export default {
 }
 
 .training-progress-section {
-  background: #f8faff;
-  border: 1px solid #e0e7ff;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
   border-radius: 12px;
   padding: 20px;
   margin: 24px 0;

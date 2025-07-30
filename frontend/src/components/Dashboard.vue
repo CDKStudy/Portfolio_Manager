@@ -227,12 +227,12 @@ export default {
         {
           label: 'Portfolio Value',
           data: [40000, 41200, 43500, 42800, 44500, 46200, 45800, 47500, 48200, 47800, 49500, 45231.89],
-          borderColor: '#6366f1',
-          backgroundColor: 'rgba(99, 102, 241, 0.1)',
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
           borderWidth: 3,
           fill: true,
           tension: 0.4,
-          pointBackgroundColor: '#6366f1',
+          pointBackgroundColor: '#3b82f6',
           pointBorderColor: '#ffffff',
           pointBorderWidth: 2,
           pointRadius: 4,
@@ -252,7 +252,7 @@ export default {
           backgroundColor: 'rgba(0, 0, 0, 0.8)',
           titleColor: '#ffffff',
           bodyColor: '#ffffff',
-          borderColor: '#6366f1',
+          borderColor: '#3b82f6',
           borderWidth: 1,
           cornerRadius: 8,
           displayColors: false,
@@ -524,7 +524,7 @@ export default {
   width: 40px;
   height: 40px;
   border: 4px solid #f3f4f6;
-  border-top: 4px solid #6366f1;
+  border-top: 4px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 16px;

@@ -658,12 +658,12 @@ export default {
         {
           label: 'Portfolio Value',
           data: [40000, 41200, 43500, 42800, 44500, 46200, 45800, 47500, 48200, 47800, 49500, 45231.89],
-          borderColor: '#6366f1',
-          backgroundColor: 'rgba(99, 102, 241, 0.1)',
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
           borderWidth: 3,
           fill: true,
           tension: 0.4,
-          pointBackgroundColor: '#6366f1',
+          pointBackgroundColor: '#3b82f6',
           pointBorderColor: '#ffffff',
           pointBorderWidth: 2,
           pointRadius: 4,
@@ -683,7 +683,7 @@ export default {
           backgroundColor: 'rgba(0, 0, 0, 0.8)',
           titleColor: '#ffffff',
           bodyColor: '#ffffff',
-          borderColor: '#6366f1',
+          borderColor: '#3b82f6',
           borderWidth: 1,
           cornerRadius: 8,
           displayColors: false,
@@ -1030,7 +1030,7 @@ export default {
 .user-avatar {
   width: 40px;
   height: 40px;
-  background: #6366f1;
+  background: #3b82f6;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1175,7 +1175,7 @@ export default {
 
 .tab-btn.active {
   color: #1f2937;
-  border-bottom-color: #6366f1;
+  border-bottom-color: #3b82f6;
 }
 
 .tab-btn:hover {
@@ -1398,7 +1398,7 @@ export default {
   width: 32px;
   height: 32px;
   border: 3px solid #e5e7eb;
-  border-top: 3px solid #6366f1;
+  border-top: 3px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;
@@ -1449,12 +1449,12 @@ export default {
 }
 
 .btn-primary {
-  background: #6366f1;
+  background: #3b82f6;
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #5856eb;
+  background: #2563eb;
 }
 
 .btn-secondary {
@@ -1468,12 +1468,12 @@ export default {
 
 .btn-outline {
   background: transparent;
-  color: #6366f1;
-  border: 1px solid #6366f1;
+  color: #3b82f6;
+  border: 1px solid #3b82f6;
 }
 
 .btn-outline:hover:not(:disabled) {
-  background: #6366f1;
+  background: #3b82f6;
   color: white;
 }
 
@@ -1564,8 +1564,8 @@ export default {
 
 .form-input:focus {
   outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .modal-actions {

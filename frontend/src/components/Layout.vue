@@ -287,7 +287,7 @@ export default {
 }
 
 .nav-item.active .nav-link {
-  background: #4f46e5;
+  background: #3b82f6;
   color: white;
 }
 
@@ -310,7 +310,7 @@ export default {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #4f46e5;
+  background: #3b82f6;
   display: flex;
   align-items: center;
   justify-content: center;
