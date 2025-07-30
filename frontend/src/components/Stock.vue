@@ -141,28 +141,7 @@
         </div>
       </div>
       
-      <!-- Results Display -->
-      <div v-if="selectedTask && selectedTask.status === 'completed' && selectedTask.results" class="results-section">
-        <h4>Prediction Results - {{ selectedTask.task_name }}</h4>
-        <div class="prediction-list">
-          <div 
-            v-for="prediction in selectedTask.results.predictions" 
-            :key="prediction.ticker" 
-            class="prediction-item"
-          >
-            <div class="prediction-info">
-              <div class="prediction-symbol">{{ prediction.ticker }}</div>
-              <div class="prediction-current">Current: ${{ formatCurrency(prediction.currentPrice) }}</div>
-            </div>
-            <div class="prediction-price">
-              <div class="predicted-price">Predicted: ${{ formatCurrency(prediction.predictedPrice) }}</div>
-              <div class="prediction-change" :class="{ positive: prediction.predictedPrice > prediction.currentPrice, negative: prediction.predictedPrice < prediction.currentPrice }">
-                {{ prediction.predictedPrice > prediction.currentPrice ? '+' : '' }}{{ formatPercent(((prediction.predictedPrice - prediction.currentPrice) / prediction.currentPrice) * 100) }}%
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+
       
       <!-- Training Progress -->
       <div v-if="predictionState.isTraining" class="training-progress-section">
@@ -278,6 +257,36 @@
       </div>
     </div>
 
+    <!-- Results Modal -->
+    <div v-if="showResultsModal && selectedTask && selectedTask.status === 'completed' && selectedTask.results" class="modal-overlay" @click="showResultsModal = false">
+      <div class="modal results-modal" @click.stop>
+        <div class="modal-header">
+          <h3>Prediction Results - {{ selectedTask.task_name }}</h3>
+          <button @click="showResultsModal = false" class="close-btn">×</button>
+        </div>
+        <div class="modal-content">
+          <div class="prediction-list">
+            <div 
+              v-for="prediction in selectedTask.results.predictions" 
+              :key="prediction.ticker" 
+              class="prediction-item"
+            >
+              <div class="prediction-info">
+                <div class="prediction-symbol">{{ prediction.ticker }}</div>
+                <div class="prediction-current">Current: ${{ formatCurrency(prediction.currentPrice) }}</div>
+              </div>
+              <div class="prediction-price">
+                <div class="predicted-price">Predicted: ${{ formatCurrency(prediction.predictedPrice) }}</div>
+                <div class="prediction-change" :class="{ positive: prediction.predictedPrice > prediction.currentPrice, negative: prediction.predictedPrice < prediction.currentPrice }">
+                  {{ prediction.predictedPrice > prediction.currentPrice ? '+' : '' }}{{ formatPercent(((prediction.predictedPrice - prediction.currentPrice) / prediction.currentPrice) * 100) }}%
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Error Message -->
     <div v-if="error" class="error-toast">
       <span>{{ error }}</span>
@@ -315,6 +324,7 @@ export default {
     // ]);
     const showBuyModal = ref(false);
     const showSellModal = ref(false);
+    const showResultsModal = ref(false);
     const sellingAsset = ref(null);
     
     const buyForm = ref({
@@ -411,6 +421,7 @@ export default {
         const response = await predictionAPI.getTask(taskId);
         selectedTask.value = response.task;
         selectedTaskId.value = taskId;
+        showResultsModal.value = true;
       } catch (err) {
         console.error('Error loading task results:', err);
       }
@@ -642,7 +653,8 @@ export default {
       formatCurrency,
       stockTradingCard,
       marketWatchCard,
-      syncMarketWatchHeight
+      syncMarketWatchHeight,
+      showResultsModal
     };
   }
 };
@@ -984,6 +996,11 @@ export default {
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
+.results-modal {
+  max-width: 700px;
+  max-height: 80vh;
+}
+
 .modal-header {
   padding: 24px 24px 0;
   display: flex;
@@ -1018,6 +1035,12 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.modal-content {
+  padding: 24px;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
 .form-group {
@@ -1302,6 +1325,49 @@ export default {
 .prediction-item:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transform: translateY(-1px);
+}
+
+.prediction-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prediction-symbol {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 16px;
+}
+
+.prediction-current {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.prediction-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.predicted-price {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 16px;
+}
+
+.prediction-change {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.prediction-change.positive {
+  color: #10b981;
+}
+
+.prediction-change.negative {
+  color: #ef4444;
 }
 
 .prediction-info {
