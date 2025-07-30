@@ -1,11 +1,11 @@
-# 投资组合管理系统架构图
+# Portfolio Management System Architecture
 
-## 系统整体架构
+## System Overall Architecture
 
 ```mermaid
 graph TB
-    subgraph "前端层 (Frontend)"
-        A[Vue.js 应用] --> B[用户界面组件]
+    subgraph "Frontend Layer"
+        A[Vue.js Application] --> B[UI Components]
         B --> C[Dashboard.vue]
         B --> D[Portfolio.vue]
         B --> E[Stock.vue]
@@ -16,7 +16,7 @@ graph TB
         B --> J[Cash.vue]
     end
 
-    subgraph "API层 (API Layer)"
+    subgraph "API Layer"
         K[api.js] --> L[portfolioAPI]
         K --> M[predictionAPI]
         K --> N[stockAPI]
@@ -24,34 +24,34 @@ graph TB
         K --> P[aiAPI]
     end
 
-    subgraph "后端层 (Backend)"
-        Q[Express 服务器] --> R[路由层]
+    subgraph "Backend Layer"
+        Q[Express Server] --> R[Route Layer]
         R --> S[portfolio.ts]
         R --> T[predict.ts]
         
-        S --> U[业务逻辑层]
+        S --> U[Business Logic Layer]
         T --> U
         
-        U --> V[服务层]
+        U --> V[Service Layer]
         V --> W[Database.ts]
         V --> X[FinancialDataService.ts]
         V --> Y[AIService.ts]
     end
 
-    subgraph "数据层 (Data Layer)"
-        Z[MySQL 数据库] --> AA[users 表]
-        Z --> BB[holdings 表]
-        Z --> CC[transactions 表]
-        Z --> DD[prediction_tasks 表]
+    subgraph "Data Layer"
+        Z[MySQL Database] --> AA[users table]
+        Z --> BB[holdings table]
+        Z --> CC[transactions table]
+        Z --> DD[prediction_tasks table]
     end
 
-    subgraph "外部服务 (External Services)"
-        EE[Yahoo Finance API] --> FF[实时股票价格]
-        EE --> GG[历史数据]
-        GG --> HH[LSTM 模型训练]
+    subgraph "External Services"
+        EE[Yahoo Finance API] --> FF[Real-time Stock Prices]
+        EE --> GG[Historical Data]
+        GG --> HH[LSTM Model Training]
         
-        II[AI 服务] --> JJ[智能投资建议]
-        II --> KK[预测分析]
+        II[AI Service] --> JJ[Smart Investment Advice]
+        II --> KK[Prediction Analysis]
     end
 
     A --> K
@@ -118,33 +118,33 @@ sequenceDiagram
     API-->>Frontend: Display AI Reply
 ```
 
-## 技术栈架构
+## Technology Stack Architecture
 
 ```mermaid
 graph LR
-    subgraph "前端技术栈"
+    subgraph "Frontend Tech Stack"
         A1[Vue.js 3] --> A2[Vite]
         A2 --> A3[Axios]
         A3 --> A4[Vue Router]
     end
 
-    subgraph "后端技术栈"
+    subgraph "Backend Tech Stack"
         B1[Node.js] --> B2[Express.js]
         B2 --> B3[TypeScript]
         B3 --> B4[MySQL2]
         B4 --> B5[mysql2/promise]
     end
 
-    subgraph "AI/ML技术栈"
-        C1[TensorFlow.js] --> C2[LSTM模型]
+    subgraph "AI/ML Tech Stack"
+        C1[TensorFlow.js] --> C2[LSTM Model]
         C2 --> C3[Yahoo Finance API]
-        C3 --> C4[AI服务集成]
+        C3 --> C4[AI Service Integration]
     end
 
-    subgraph "数据库技术栈"
-        D1[MySQL] --> D2[连接池]
-        D2 --> D3[事务管理]
-        D3 --> D4[数据持久化]
+    subgraph "Database Tech Stack"
+        D1[MySQL] --> D2[Connection Pool]
+        D2 --> D3[Transaction Management]
+        D3 --> D4[Data Persistence]
     end
 
     A1 --> B1
@@ -152,11 +152,11 @@ graph LR
     B1 --> D1
 ```
 
-## 模块依赖关系
+## Module Dependencies
 
 ```mermaid
 graph TD
-    subgraph "前端模块"
+    subgraph "Frontend Modules"
         A[Dashboard] --> B[Portfolio]
         B --> C[Stock]
         B --> D[Fund]
@@ -166,7 +166,7 @@ graph TD
         B --> H[Cash]
     end
 
-    subgraph "后端模块"
+    subgraph "Backend Modules"
         I[Express App] --> J[Routes]
         J --> K[Portfolio Routes]
         J --> L[Predict Routes]
@@ -179,7 +179,7 @@ graph TD
         L --> Q[Prediction Service]
     end
 
-    subgraph "数据模型"
+    subgraph "Data Models"
         R[User Model] --> S[Holding Model]
         S --> T[Transaction Model]
         T --> U[Prediction Model]
@@ -189,60 +189,60 @@ graph TD
     I --> R
 ```
 
-## 部署架构
+## Deployment Architecture
 
 ```mermaid
 graph TB
-    subgraph "开发环境"
-        A[前端开发服务器<br/>localhost:5173] --> B[后端API服务器<br/>localhost:3000]
-        B --> C[MySQL数据库<br/>localhost:3306]
+    subgraph "Development Environment"
+        A[Frontend Dev Server<br/>localhost:5173] --> B[Backend API Server<br/>localhost:3000]
+        B --> C[MySQL Database<br/>localhost:3306]
     end
 
-    subgraph "生产环境"
-        D[前端静态文件<br/>Nginx/CDN] --> E[后端API服务器<br/>Node.js/PM2]
-        E --> F[MySQL数据库<br/>云数据库]
+    subgraph "Production Environment"
+        D[Frontend Static Files<br/>Nginx/CDN] --> E[Backend API Server<br/>Node.js/PM2]
+        E --> F[MySQL Database<br/>Cloud Database]
     end
 
-    subgraph "外部服务"
+    subgraph "External Services"
         G[Yahoo Finance API] --> E
-        H[AI服务] --> E
+        H[AI Service] --> E
     end
 
-    A -.->|开发时| G
-    A -.->|开发时| H
+    A -.->|During Development| G
+    A -.->|During Development| H
 ```
 
-## 关键特性说明
+## Key Features
 
-### 1. 实时数据流
-- **股票价格**: 通过Yahoo Finance API实时获取
-- **持仓价值**: 动态计算基于当前价格
-- **盈亏分析**: 实时更新投资组合盈亏
+### 1. Real-time Data Flow
+- **Stock Prices**: Real-time fetching via Yahoo Finance API
+- **Portfolio Value**: Dynamic calculation based on current prices
+- **Profit/Loss Analysis**: Real-time portfolio P&L updates
 
-### 2. AI预测系统
-- **LSTM模型**: 使用TensorFlow.js训练
-- **历史数据**: 从Yahoo Finance获取3个月数据
-- **预测结果**: 存储到数据库供前端查询
+### 2. AI Prediction System
+- **LSTM Model**: Training using TensorFlow.js
+- **Historical Data**: 3-month data from Yahoo Finance
+- **Prediction Results**: Stored in database for frontend queries
 
-### 3. 智能投资建议
-- **AI聊天**: 集成AI服务提供投资建议
-- **投资组合分析**: 基于用户持仓提供个性化建议
+### 3. Smart Investment Advice
+- **AI Chat**: Integrated AI service for investment advice
+- **Portfolio Analysis**: Personalized recommendations based on user holdings
 
-### 4. 数据一致性
-- **事务管理**: MySQL事务确保数据一致性
-- **连接池**: 优化数据库连接性能
-- **错误处理**: 完善的错误处理机制
+### 4. Data Consistency
+- **Transaction Management**: MySQL transactions ensure data consistency
+- **Connection Pooling**: Optimized database connection performance
+- **Error Handling**: Comprehensive error handling mechanisms
 
-## 性能优化
+## Performance Optimization
 
-1. **前端优化**: Vue.js虚拟DOM，组件懒加载
-2. **后端优化**: 连接池，缓存机制
-3. **数据库优化**: 索引优化，查询优化
-4. **网络优化**: HTTP/2，压缩传输
+1. **Frontend Optimization**: Vue.js virtual DOM, component lazy loading
+2. **Backend Optimization**: Connection pooling, caching mechanisms
+3. **Database Optimization**: Index optimization, query optimization
+4. **Network Optimization**: HTTP/2, compression transmission
 
-## 安全考虑
+## Security Considerations
 
-1. **输入验证**: 前后端双重验证
-2. **SQL注入防护**: 参数化查询
-3. **CORS配置**: 跨域请求控制
-4. **环境变量**: 敏感信息配置化 
+1. **Input Validation**: Frontend and backend dual validation
+2. **SQL Injection Protection**: Parameterized queries
+3. **CORS Configuration**: Cross-origin request control
+4. **Environment Variables**: Sensitive information configuration 
