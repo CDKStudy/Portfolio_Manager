@@ -65,57 +65,57 @@ graph TB
 
 ```mermaid
 sequenceDiagram
-    participant User as 用户
-    participant Frontend as 前端 (Vue.js)
-    participant API as API服务 (api.js)
-    participant Backend as 后端 (Express)
-    participant DB as 数据库 (MySQL)
-    participant External as 外部服务
+    participant User as User
+    participant Frontend as Frontend (Vue.js)
+    participant API as API Service (api.js)
+    participant Backend as Backend (Express)
+    participant DB as Database (MySQL)
+    participant External as External Services
 
-    %% 投资组合查看流程
-    User->>Frontend: 查看投资组合
+    %% Portfolio View Flow
+    User->>Frontend: View Portfolio
     Frontend->>API: getPortfolio()
     API->>Backend: GET /api/portfolio
-    Backend->>DB: 查询用户持仓
-    Backend->>External: 获取实时价格
-    External-->>Backend: 返回价格数据
-    Backend-->>API: 返回组合数据
-    API-->>Frontend: 更新界面
+    Backend->>DB: Query User Holdings
+    Backend->>External: Get Real-time Prices
+    External-->>Backend: Return Price Data
+    Backend-->>API: Return Portfolio Data
+    API-->>Frontend: Update Interface
 
-    %% 股票交易流程
-    User->>Frontend: 买入股票
+    %% Stock Trading Flow
+    User->>Frontend: Buy Stock
     Frontend->>API: buyStock()
     API->>Backend: POST /api/portfolio/buy
-    Backend->>External: 获取当前价格
-    External-->>Backend: 返回价格
-    Backend->>DB: 创建交易记录
-    Backend->>DB: 更新持仓
-    Backend->>DB: 更新现金余额
-    Backend-->>API: 返回交易结果
-    API-->>Frontend: 显示交易成功
+    Backend->>External: Get Current Price
+    External-->>Backend: Return Price
+    Backend->>DB: Create Transaction Record
+    Backend->>DB: Update Holdings
+    Backend->>DB: Update Cash Balance
+    Backend-->>API: Return Transaction Result
+    API-->>Frontend: Show Success Message
 
-    %% AI预测流程
-    User->>Frontend: 启动预测
+    %% AI Prediction Flow
+    User->>Frontend: Start Prediction
     Frontend->>API: startPrediction()
     API->>Backend: POST /api/predict
-    Backend->>DB: 创建预测任务
-    Backend->>External: 获取历史数据
-    External-->>Backend: 返回股票数据
-    Backend->>Backend: 训练LSTM模型
-    Backend->>Backend: 执行预测
-    Backend->>DB: 保存预测结果
-    Backend-->>API: 返回任务ID
-    API-->>Frontend: 显示训练状态
+    Backend->>DB: Create Prediction Task
+    Backend->>External: Get Historical Data
+    External-->>Backend: Return Stock Data
+    Backend->>Backend: Train LSTM Model
+    Backend->>Backend: Execute Prediction
+    Backend->>DB: Save Prediction Results
+    Backend-->>API: Return Task ID
+    API-->>Frontend: Show Training Status
 
-    %% AI聊天流程
-    User->>Frontend: 发送消息
+    %% AI Chat Flow
+    User->>Frontend: Send Message
     Frontend->>API: chat()
     API->>Backend: POST /api/portfolio/ai/chat
-    Backend->>DB: 获取投资组合上下文
-    Backend->>External: 调用AI服务
-    External-->>Backend: 返回AI回复
-    Backend-->>API: 返回智能建议
-    API-->>Frontend: 显示AI回复
+    Backend->>DB: Get Portfolio Context
+    Backend->>External: Call AI Service
+    External-->>Backend: Return AI Response
+    Backend-->>API: Return Smart Advice
+    API-->>Frontend: Display AI Reply
 ```
 
 ## 技术栈架构
