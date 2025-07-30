@@ -6,6 +6,7 @@ import Fund from './components/Fund.vue'
 import AIAgent from './components/AIAgent.vue'
 import Cash from './components/Cash.vue'
 import Transaction from './components/Transaction.vue'
+import Analytics from './components/Analytics.vue'
 
 const routes = [
   {
@@ -45,6 +46,11 @@ const routes = [
         path: '/transactions',
         name: 'transactions',
         component: Transaction
+      },
+      {
+        path: '/analytics',
+        name: 'analytics',
+        component: Analytics
       }
     ]
   }

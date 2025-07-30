@@ -3,6 +3,7 @@ import 'dotenv/config';
 import express from 'express';
 import { Database } from './models/Database';
 import portfolioRoutes from './routes/portfolio';
+import predictRoutes from './routes/predict';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,6 +17,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/predict', predictRoutes);
 
 // Health check with database connectivity
 app.get('/health', async (req, res) => {
