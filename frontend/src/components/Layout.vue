@@ -1,12 +1,15 @@
 <template>
   <div class="portfolio-app">
     <!-- Sidebar Navigation -->
-    <nav class="sidebar">
+    <nav class="sidebar" :class="{ 'sidebar-closed': !isSidebarOpen }">
       <div class="sidebar-header">
         <div class="logo">
           <i class="icon">📊</i>
-          <span>Portfolio Manager</span>
+          <span class="logo-text">Portfolio Manager</span>
         </div>
+        <button class="sidebar-toggle" @click="toggleSidebar">
+          <i class="toggle-icon">{{ isSidebarOpen ? '◀' : '▶' }}</i>
+        </button>
       </div>
       
       <ul class="nav-menu">
@@ -66,7 +69,7 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="main-content">
+    <main class="main-content" :class="{ 'main-content-expanded': !isSidebarOpen }">
       <!-- Header -->
       <header class="main-header">
         <div class="header-left">
@@ -86,17 +89,22 @@
 </template>
 
 <script>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
 export default {
   name: 'Layout',
   setup() {
     const route = useRoute();
+    const isSidebarOpen = ref(true);
     
     const currentRoute = computed(() => {
       return route.name;
     });
+
+    const toggleSidebar = () => {
+      isSidebarOpen.value = !isSidebarOpen.value;
+    };
 
     const getPageTitle = () => {
       const routeNames = {
@@ -115,6 +123,8 @@ export default {
 
     return {
       currentRoute,
+      isSidebarOpen,
+      toggleSidebar,
       getPageTitle
     };
   }
@@ -126,6 +136,31 @@ export default {
   display: flex;
   min-height: 100vh;
   background: #f9fafb;
+}
+
+/* Toggle Button */
+.sidebar-toggle {
+  background: none;
+  border: none;
+  color: #d1d5db;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.sidebar-toggle:hover {
+  background: #374151;
+  color: white;
+}
+
+.toggle-icon {
+  font-size: 14px;
+  font-weight: 600;
 }
 
 /* Sidebar Styles */
@@ -140,17 +175,42 @@ export default {
   left: 0;
   top: 0;
   z-index: 100;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-closed {
+  transform: translateX(calc(-100% + 60px));
+}
+
+.sidebar-closed .logo-text {
+  opacity: 0;
+}
+
+.sidebar-closed .nav-menu {
+  opacity: 0;
+}
+
+.sidebar-closed .user-profile-sidebar {
+  opacity: 0;
 }
 
 .sidebar-header {
   padding: 24px 20px;
   border-bottom: 1px solid #374151;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .logo {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 1;
+}
+
+.logo-text {
+  transition: opacity 0.3s ease;
 }
 
 .logo .icon {
@@ -168,6 +228,7 @@ export default {
   list-style: none;
   padding: 24px 0;
   margin: 0;
+  transition: opacity 0.3s ease;
 }
 
 .nav-item {
@@ -207,6 +268,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 12px;
+  transition: opacity 0.3s ease;
 }
 
 .user-avatar {
@@ -243,6 +305,11 @@ export default {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content-expanded {
+  margin-left: 60px;
 }
 
 .main-header {
@@ -284,15 +351,13 @@ export default {
 @media (max-width: 768px) {
   .sidebar {
     width: 240px;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-  }
-  
-  .sidebar.open {
-    transform: translateX(0);
   }
   
   .main-content {
+    margin-left: 0;
+  }
+  
+  .main-content-expanded {
     margin-left: 0;
   }
   
@@ -308,6 +373,17 @@ export default {
 @media (max-width: 480px) {
   .sidebar {
     width: 100%;
+  }
+  
+  .sidebar-toggle {
+    top: 15px;
+    left: 15px;
+    width: 40px;
+    height: 40px;
+  }
+  
+  .toggle-icon {
+    font-size: 16px;
   }
   
   .main-header {
