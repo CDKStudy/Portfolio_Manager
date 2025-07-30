@@ -3,8 +3,7 @@
     <!-- Sidebar Navigation -->
     <nav class="sidebar">
       <div class="sidebar-header">
-        <div class="logo">
-          <i class="icon">📊</i>
+        <div class="logo">    
           <span>Portfolio Manager</span>
       </div>
             </div>

@@ -4,7 +4,6 @@
     <nav class="sidebar" :class="{ 'sidebar-closed': !isSidebarOpen }">
       <div class="sidebar-header">
         <div class="logo">
-          <i class="icon">📊</i>
           <span class="logo-text">Portfolio Manager</span>
         </div>
         <button class="sidebar-toggle" @click="toggleSidebar">
@@ -151,6 +150,11 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 16px;
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
 }
 
 .sidebar-toggle:hover {
@@ -195,18 +199,26 @@ export default {
 }
 
 .sidebar-header {
-  padding: 24px 20px;
+  padding: 20px 24px;
   border-bottom: 1px solid #374151;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
+  min-height: 80px;
 }
 
 .logo {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
   flex: 1;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .logo-text {
@@ -218,7 +230,7 @@ export default {
 }
 
 .logo span {
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 700;
   color: white;
 }
@@ -322,6 +334,7 @@ export default {
   position: sticky;
   top: 0;
   z-index: 50;
+  min-height: 80px;
 }
 
 .header-left h1 {
