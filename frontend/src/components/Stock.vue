@@ -1,82 +1,85 @@
 <template>
   <div class="stock-page">
-    <!-- Stock Management -->
-    <div class="asset-management" ref="stockTradingCard">
-      <div class="asset-header">
-        <h2>Stock Trading</h2>
-        <button @click="showBuyModal = true" class="btn btn-primary">
-          + Add Stock Record
-        </button>
-      </div>
-      
-      <div v-if="loading" class="loading-state">
-        <div class="spinner"></div>
-        <p>Loading stocks...</p>
-      </div>
-      <div v-else-if="stockHoldings.length === 0" class="empty-state">
-        <div class="empty-icon">📈</div>
-        <p>No stocks in your portfolio</p>
-        <p class="empty-subtitle">Start by buying your first stock!</p>
-      </div>
-      <div v-else class="holdings-grid">
-        <div
-          v-for="holding in stockHoldings"
-          :key="holding.id"
-          class="holding-card"
-        >
-          <div class="holding-header">
-            <div class="stock-info">
-              <h4>{{ holding.ticker }}</h4>
-              <span class="stock-volume">{{ holding.quantity }} shares</span>
-            </div>
-            <div class="holding-actions">
-              <button @click="sellAsset(holding)" class="btn btn-outline btn-sm">
-                Sell
-              </button>
-              <!-- <button @click="deleteHolding(holding.id)" class="btn btn-danger btn-sm">
-                ×
-              </button> -->
-            </div>
-          </div>
-          
-          <div class="holding-details">
-            <div class="price-row">
-              <span class="current-price">Current Market Price (per unit)：${{ formatCurrency(holding.currentPrice || holding.buyPrice) }}</span>
-              <span class="price-change" :class="{ positive: (holding.profitLoss || 0) >= 0, negative: (holding.profitLoss || 0) < 0 }">
-                {{ (holding.profitLoss || 0) >= 0 ? '+' : '' }}${{ formatCurrency(holding.profitLoss || 0) }}
-              </span>
+    <!-- Main content area -->
+    <div class="main-content">
+      <!-- Stock Management -->
+      <div class="asset-management" ref="stockTradingCard">
+        <div class="asset-header">
+          <h2>Stock Trading</h2>
+          <button @click="showBuyModal = true" class="btn btn-primary">
+            + Add Stock Record
+          </button>
+        </div>
+        
+        <div v-if="loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading stocks...</p>
+        </div>
+        <div v-else-if="stockHoldings.length === 0" class="empty-state">
+          <div class="empty-icon">📈</div>
+          <p>No stocks in your portfolio</p>
+          <p class="empty-subtitle">Start by buying your first stock!</p>
+        </div>
+        <div v-else class="holdings-grid">
+          <div
+            v-for="holding in stockHoldings"
+            :key="holding.id"
+            class="holding-card"
+          >
+            <div class="holding-header">
+              <div class="stock-info">
+                <h4>{{ holding.ticker }}</h4>
+                <span class="stock-volume">{{ holding.quantity }} shares</span>
+              </div>
+              <div class="holding-actions">
+                <button @click="sellAsset(holding)" class="btn btn-outline btn-sm">
+                  Sell
+                </button>
+                <!-- <button @click="deleteHolding(holding.id)" class="btn btn-danger btn-sm">
+                  ×
+                </button> -->
+              </div>
             </div>
             
-            <div class="value-row">
-              <span class="total-value">Current Market Value (Total): ${{ formatCurrency(holding.totalValue || (holding.quantity * (holding.currentPrice || holding.buyPrice))) }}</span>
-              <span class="return-percent" :class="{ positive: (holding.profitLossPercent || 0) >= 0, negative: (holding.profitLossPercent || 0) < 0 }">
-                {{ (holding.profitLossPercent || 0) >= 0 ? '+' : '' }}{{ formatPercent(holding.profitLossPercent || 0) }}%
-              </span>
-            </div>
-            
-            <div class="cost-row">
-              <span class="avg-cost">Average Purchase Cost: ${{ formatCurrency(holding.buyPrice) }}</span>
+            <div class="holding-details">
+              <div class="price-row">
+                <span class="current-price">Current Market Price (per unit)：${{ formatCurrency(holding.currentPrice || holding.buyPrice) }}</span>
+                <span class="price-change" :class="{ positive: (holding.profitLoss || 0) >= 0, negative: (holding.profitLoss || 0) < 0 }">
+                  {{ (holding.profitLoss || 0) >= 0 ? '+' : '' }}${{ formatCurrency(holding.profitLoss || 0) }}
+                </span>
+              </div>
+              
+              <div class="value-row">
+                <span class="total-value">Current Market Value (Total): ${{ formatCurrency(holding.totalValue || (holding.quantity * (holding.currentPrice || holding.buyPrice))) }}</span>
+                <span class="return-percent" :class="{ positive: (holding.profitLossPercent || 0) >= 0, negative: (holding.profitLossPercent || 0) < 0 }">
+                  {{ (holding.profitLossPercent || 0) >= 0 ? '+' : '' }}{{ formatPercent(holding.profitLossPercent || 0) }}%
+                </span>
+              </div>
+              
+              <div class="cost-row">
+                <span class="avg-cost">Average Purchase Cost: ${{ formatCurrency(holding.buyPrice) }}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Market Watch -->
-    <div class="market-watch-section">
-      <div class="market-watch-card" ref="marketWatchCard">
-        <h3>Stock Market Watch</h3>
-        <div class="market-list">
-          <div 
-            v-for="stock in marketStocks" 
-            :key="stock.ticker"
-            class="market-item"
-            @click="selectStock(stock.ticker)"
-          >
-            <div class="market-symbol">{{ stock.ticker }}</div>
-            <div class="market-price">${{ formatCurrency(stock.price) }}</div>
-            <div class="market-change" :class="{ positive: stock.change >= 0, negative: stock.change < 0 }">
-              {{ stock.change >= 0 ? '+' : '' }}{{ formatPercent(stock.changePercent) }}%
+      <!-- Market Watch -->
+      <div class="market-watch-section">
+        <div class="market-watch-card" ref="marketWatchCard">
+          <h3>Stock Market Watch</h3>
+          <div class="market-list">
+            <div 
+              v-for="stock in marketStocks" 
+              :key="stock.ticker"
+              class="market-item"
+              @click="selectStock(stock.ticker)"
+            >
+              <div class="market-symbol">{{ stock.ticker }}</div>
+              <div class="market-price">${{ formatCurrency(stock.price) }}</div>
+              <div class="market-change" :class="{ positive: stock.change >= 0, negative: stock.change < 0 }">
+                {{ stock.change >= 0 ? '+' : '' }}{{ formatPercent(stock.changePercent) }}%
+              </div>
             </div>
           </div>
         </div>
@@ -650,6 +653,12 @@ export default {
   padding: 24px;
   background: #f9fafb;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.main-content {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 24px;
@@ -1063,6 +1072,10 @@ export default {
 
 .prediction-section {
   margin-top: 32px;
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e5e7eb;
 }
 
 .prediction-header {
