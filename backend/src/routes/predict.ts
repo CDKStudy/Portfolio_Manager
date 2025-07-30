@@ -164,8 +164,32 @@ async function predictWithLSTMModel(model: tf.LayersModel, stockData: number[]) 
 }
 
 // Get tickers from database or use default ones
-async function fetchTickersFromDatabase(): Promise<string[]> {
-  return ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA'];
+async function fetchTickersFromDatabase(userId: number = 1): Promise<string[]> {
+  const connection = await getDbConnection();
+  try {
+    // Get unique stock tickers from user's holdings
+    const [rows] = await connection.execute(
+      'SELECT DISTINCT ticker FROM holdings WHERE user_id = ? AND type = "stock"',
+      [userId]
+    );
+    
+    const tickers = (rows as any[]).map(row => row.ticker);
+    
+    // If user has no stocks, return default tickers for demo
+    if (tickers.length === 0) {
+      console.log('No stocks found for user, using default tickers for demo');
+      return ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA'];
+    }
+    
+    console.log(`Found ${tickers.length} stocks for user ${userId}:`, tickers);
+    return tickers;
+  } catch (error) {
+    console.error('Error fetching tickers from database:', error);
+    // Fallback to default tickers if database query fails
+    return ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA'];
+  } finally {
+    await connection.end();
+  }
 }
 
 // Create a new prediction task
@@ -203,10 +227,10 @@ async function updatePredictionTask(taskId: number, status: string, results?: an
 }
 
 // Main function to predict stock prices
-async function predict(taskId: number) {
-  console.log(`Starting prediction task ${taskId}...`);
+async function predict(taskId: number, userId: number = 1) {
+  console.log(`Starting prediction task ${taskId} for user ${userId}...`);
   
-  const tickers = await fetchTickersFromDatabase();
+  const tickers = await fetchTickersFromDatabase(userId);
   const predictions: Array<{ticker: string, predictedPrice: number, currentPrice: number}> = [];
 
   for (const ticker of tickers) {
@@ -308,6 +332,7 @@ router.get('/tasks/:id', async (req, res) => {
 // POST /api/predict - Start new prediction
 router.post('/', async (req, res) => {
   try {
+    const { userId = 1 } = req.body; // Get userId from request body, default to 1
     const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
     const taskName = `Stock Prediction ${timestamp}`;
     
@@ -316,7 +341,7 @@ router.post('/', async (req, res) => {
     // Start prediction in background
     (async () => {
       try {
-        const result = await predict(taskId);
+        const result = await predict(taskId, userId);
         await updatePredictionTask(taskId, 'completed', result);
       } catch (error) {
         console.error(`Prediction task ${taskId} failed:`, error);
@@ -328,7 +353,8 @@ router.post('/', async (req, res) => {
       taskId,
       taskName,
       status: 'training',
-      message: 'Prediction task started'
+      message: 'Prediction task started',
+      userId
     });
   } catch (error) {
     console.error('Error starting prediction:', error);

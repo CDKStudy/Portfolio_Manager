@@ -113,14 +113,14 @@ export default {
             this.assetAllocation.funds.percentage
           ],
           backgroundColor: [
-            '#FFD700', // Gold for cash
-            '#4CAF50', // Green for stocks
-            '#2196F3'  // Blue for funds
+            '#93c5fd', // Light blue for cash
+            '#6ee7b7', // Light green for stocks
+            '#fcd34d'  // Light yellow for funds
           ],
           borderColor: [
-            '#FFC107',
-            '#388E3C',
-            '#1976D2'
+            '#3b82f6',
+            '#10b981',
+            '#f59e0b'
           ],
           borderWidth: 2
         }]
@@ -136,8 +136,8 @@ export default {
         datasets: [{
           data: this.stockHoldings.map(holding => holding.percentage),
           backgroundColor: [
-            '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107',
-            '#FF9800', '#FF5722', '#795548', '#9E9E9E', '#607D8B'
+            '#93c5fd', '#6ee7b7', '#fcd34d', '#fca5a5', '#c4b5fd',
+            '#67e8f9', '#bef264', '#fdba74', '#f9a8d4', '#a5b4fc'
           ],
           borderWidth: 2
         }]
@@ -153,8 +153,8 @@ export default {
         datasets: [{
           data: this.fundHoldings.map(holding => holding.percentage),
           backgroundColor: [
-            '#2196F3', '#03A9F4', '#00BCD4', '#009688', '#4CAF50',
-            '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800'
+            '#93c5fd', '#6ee7b7', '#fcd34d', '#fca5a5', '#c4b5fd',
+            '#67e8f9', '#bef264', '#fdba74', '#f9a8d4', '#a5b4fc'
           ],
           borderWidth: 2
         }]
@@ -170,7 +170,7 @@ export default {
           legend: {
             position: 'bottom',
             labels: {
-              color: '#ffffff',
+              color: '#1f2937',
               font: {
                 size: 12
               }
@@ -198,7 +198,7 @@ export default {
           legend: {
             position: 'top',
             labels: {
-              color: '#ffffff',
+              color: '#1f2937',
               font: {
                 size: 12
               }
@@ -219,21 +219,21 @@ export default {
         scales: {
           x: {
             ticks: {
-              color: '#ffffff'
+              color: '#6b7280'
             },
             grid: {
-              color: 'rgba(255, 255, 255, 0.1)'
+              color: '#e5e7eb'
             }
           },
           y: {
             ticks: {
-              color: '#ffffff',
+              color: '#6b7280',
               callback: function(value) {
                 return '$' + value.toLocaleString()
               }
             },
             grid: {
-              color: 'rgba(255, 255, 255, 0.1)'
+              color: '#e5e7eb'
             }
           }
         }
@@ -299,22 +299,22 @@ export default {
           {
             label: 'Cash',
             data: cashData,
-            borderColor: '#FFD700',
-            backgroundColor: 'rgba(255, 215, 0, 0.1)',
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
             tension: 0.4
           },
           {
             label: 'Stocks',
             data: stocksData,
-            borderColor: '#4CAF50',
-            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.05)',
             tension: 0.4
           },
           {
             label: 'Funds',
             data: fundsData,
-            borderColor: '#2196F3',
-            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245, 158, 11, 0.05)',
             tension: 0.4
           }
         ]
@@ -326,10 +326,10 @@ export default {
 
 <style scoped>
 .analytics-container {
-  padding: 0;
-  color: #ffffff;
+  padding: 24px;
+  color: #1f2937;
   min-height: 100vh;
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  background: #f9fafb;
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
@@ -346,12 +346,13 @@ export default {
 .analytics-header h1 {
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
-  color: #ffffff;
+  color: #1f2937;
+  font-weight: 600;
 }
 
 .analytics-header p {
   font-size: 1.1rem;
-  color: #b0b0b0;
+  color: #6b7280;
   margin: 0;
 }
 
@@ -363,9 +364,10 @@ export default {
 .analytics-section h2 {
   font-size: 1.8rem;
   margin-bottom: 1.5rem;
-  color: #ffffff;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  color: #1f2937;
+  border-bottom: 2px solid #e5e7eb;
   padding-bottom: 0.5rem;
+  font-weight: 600;
 }
 
 .pie-charts-row {
@@ -378,25 +380,26 @@ export default {
 
 .pie-chart-card {
   flex: 1;
-  background: rgba(255, 255, 255, 0.1);
+  background: white;
   border-radius: 12px;
   padding: 1.2rem;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid #e5e7eb;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   min-width: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .pie-chart-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .pie-chart-card h3 {
   font-size: 1.2rem;
   margin-bottom: 1rem;
-  color: #ffffff;
+  color: #1f2937;
   text-align: center;
+  font-weight: 600;
 }
 
 .pie-chart-container {
@@ -405,25 +408,26 @@ export default {
 }
 
 .line-chart-card {
-  background: rgba(255, 255, 255, 0.1);
+  background: white;
   border-radius: 12px;
   padding: 1.5rem;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid #e5e7eb;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   width: 100%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .line-chart-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .line-chart-card h3 {
   font-size: 1.3rem;
   margin-bottom: 1.5rem;
-  color: #ffffff;
+  color: #1f2937;
   text-align: center;
+  font-weight: 600;
 }
 
 .line-chart-container {
@@ -437,14 +441,14 @@ export default {
   align-items: center;
   justify-content: center;
   padding: 4rem;
-  color: #ffffff;
+  color: #6b7280;
 }
 
 .loading-spinner {
   width: 50px;
   height: 50px;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top: 4px solid #ffffff;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -458,11 +462,11 @@ export default {
 .error-container {
   text-align: center;
   padding: 2rem;
-  color: #ff6b6b;
+  color: #ef4444;
 }
 
 .retry-btn {
-  background: #4CAF50;
+  background: #3b82f6;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -471,10 +475,11 @@ export default {
   font-size: 1rem;
   margin-top: 1rem;
   transition: background-color 0.3s ease;
+  font-weight: 500;
 }
 
 .retry-btn:hover {
-  background: #45a049;
+  background: #2563eb;
 }
 
 /* Responsive design */

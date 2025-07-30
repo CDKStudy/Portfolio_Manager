@@ -131,7 +131,7 @@ export const stockAPI = {
 // Prediction API functions with task management
 export const predictionAPI = {
   // Start new prediction task
-  async startPrediction() {
+  async startPrediction(userId = DEFAULT_USER_ID) {
     try {
       // Set training state
       globalPredictionState.isTraining = true
@@ -139,7 +139,7 @@ export const predictionAPI = {
       globalPredictionState.hasNewResults = false
       notifyPredictionStateChange()
 
-      const response = await api.post('/predict')
+      const response = await api.post('/predict', { userId })
       return response.data
     } catch (error) {
       // Reset state on error

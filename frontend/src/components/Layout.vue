@@ -4,6 +4,10 @@
     <nav class="sidebar" :class="{ 'sidebar-closed': !isSidebarOpen }">
       <div class="sidebar-header">
         <div class="logo">
+          <div class="pioneerz-icon">
+            <div class="icon-text white">PZ</div>
+            <div class="icon-text black">PZ</div>
+          </div>
           <span class="logo-text">Portfolio Manager</span>
         </div>
         <button class="sidebar-toggle" @click="toggleSidebar">
@@ -81,11 +85,11 @@
       
       <div class="user-profile-sidebar">
         <div class="user-avatar">
-          <span>JD</span>
+          <span>PZ</span>
         </div>
         <div class="user-info">
-          <div class="user-name">John Doe</div>
-          <div class="user-email">john.doe@example.com</div>
+          <div class="user-name">PioneerZ</div>
+          <div class="user-email">PioneerZ@gmail.com</div>
         </div>
       </div>
     </nav>
@@ -213,6 +217,10 @@ export default {
   opacity: 0;
 }
 
+.sidebar-closed .pioneerz-icon {
+  transform: scale(0.8);
+}
+
 .sidebar-closed .nav-menu {
   opacity: 0;
 }
@@ -234,7 +242,7 @@ export default {
 .logo {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 12px;
   flex: 1;
   position: absolute;
@@ -242,10 +250,50 @@ export default {
   right: 0;
   top: 50%;
   transform: translateY(-50%);
+  padding-left: 12px;
+}
+
+.sidebar-closed .logo {
+  justify-content: center;
+  padding-left: 0;
 }
 
 .logo-text {
   transition: opacity 0.3s ease;
+}
+
+/* PioneerZ Icon Styles */
+.pioneerz-icon {
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(135deg, #000000, #ffffff);
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.icon-text {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  position: absolute;
+  letter-spacing: 1px;
+}
+
+.icon-text.white {
+  color: white;
+  transform: translate(1px, 1px);
+  z-index: 1;
+}
+
+.icon-text.black {
+  color: black;
+  transform: translate(-1px, -1px);
+  z-index: 2;
 }
 
 .logo .icon {
@@ -253,7 +301,7 @@ export default {
 }
 
 .logo span {
-  font-size: 21px;
+  font-size: 19px;
   font-weight: 700;
   color: white;
 }
