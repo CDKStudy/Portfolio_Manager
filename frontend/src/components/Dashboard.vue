@@ -167,7 +167,7 @@ import {
   Title,
   Tooltip
 } from 'chart.js';
-import { onMounted, ref } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 import { Line } from 'vue-chartjs';
 import { useRouter } from 'vue-router';
 import { portfolioAPI, stockAPI } from '../services/api';
@@ -217,13 +217,14 @@ export default {
       netWorth: 45231.89
     });
     const allHoldings = ref([]);
-    const stockHoldings = ref({
+    const stockHoldings = reactive({
       items: [],
-      totalValue: 28459.00
+      totalValue: 0
     });
-    const fundHoldings = ref({
+
+    const fundHoldings = reactive({
       items: [],
-      totalValue: 12500.00
+      totalValue: 0
     });
 
     // 图表数据
@@ -310,6 +311,7 @@ export default {
         // Load portfolio summary
         const portfolioResponse = await portfolioAPI.getPortfolio();
         portfolio.value = portfolioResponse.data;
+        console.log('Portfolio loaded:', portfolio.value);
 
         // Load user info
         const userResponse = await portfolioAPI.getUser();
@@ -318,16 +320,27 @@ export default {
         // Load holdings
         const holdingsResponse = await portfolioAPI.getHoldings();
         allHoldings.value = holdingsResponse.data.holdings || [];
+        console.log('Holdings loaded:', allHoldings.value);
 
         // Separate stocks and funds
-        stockHoldings.value.items = allHoldings.value.filter(h => h.type === 'stock');
-        fundHoldings.value.items = allHoldings.value.filter(h => h.type === 'fund');
+        stockHoldings.items = allHoldings.value.filter(h => h.type === 'stock');
+        fundHoldings.items = allHoldings.value.filter(h => h.type === 'fund');
+        // console.log('Stock Holdings:', stockHoldings.value.items);
+        // console.log('Fund Holdings:', fundHoldings.value.items);
 
         // Calculate totals
-        stockHoldings.value.totalValue = stockHoldings.value.items.reduce((sum, h) => 
+        // stockHoldings.value.totalValue = stockHoldings.value.items.reduce((sum, h) => 
+        //   sum + (h.totalValue || (h.quantity * (h.currentPrice || h.buyPrice))), 0);
+        // fundHoldings.value.totalValue = fundHoldings.value.items.reduce((sum, h) => 
+        //   sum + (h.totalValue || (h.quantity * (h.currentPrice || h.buyPrice))), 0);
+
+          stockHoldings.totalValue = stockHoldings.items.reduce((sum, h) => 
           sum + (h.totalValue || (h.quantity * (h.currentPrice || h.buyPrice))), 0);
-        fundHoldings.value.totalValue = fundHoldings.value.items.reduce((sum, h) => 
+        fundHoldings.totalValue = fundHoldings.items.reduce((sum, h) => 
           sum + (h.totalValue || (h.quantity * (h.currentPrice || h.buyPrice))), 0);
+
+        console.log('Stock Total Value:', stockHoldings.totalValue);
+        console.log('Fund Total Value:', fundHoldings.totalValue);
 
       } catch (err) {
         error.value = 'Failed to load portfolio';
