@@ -391,7 +391,8 @@ export default {
     const startNewPrediction = async () => {
       try {
         trainingStartTime.value = Date.now();
-        const response = await predictionAPI.startPrediction();
+        // Pass the current user ID (default to 1 for demo)
+        const response = await predictionAPI.startPrediction(1);
         
         // Start polling for task completion
         await predictionAPI.pollTaskStatus(response.taskId, (task) => {
