@@ -12,6 +12,21 @@ const api = axios.create({
 // Default user ID for demo
 const DEFAULT_USER_ID = 1
 
+// Global prediction state
+let globalPredictionState = {
+  isTraining: false,
+  lastTrainingStart: null,
+  results: null,
+  hasNewResults: false
+}
+
+// Event listeners for prediction state changes
+const predictionStateListeners = new Set()
+
+function notifyPredictionStateChange() {
+  predictionStateListeners.forEach(listener => listener(globalPredictionState))
+}
+
 export const portfolioAPI = {
   // Get portfolio summary
   getPortfolio: (userId = DEFAULT_USER_ID) => api.get('/portfolio', { params: { userId } }),
@@ -108,6 +123,93 @@ export const stockAPI = {
 
   // Search stocks
   searchStocks: (query) => portfolioAPI.searchStocks(query)
+}
+
+// Prediction API functions with task management
+export const predictionAPI = {
+  // Start new prediction task
+  async startPrediction() {
+    try {
+      // Set training state
+      globalPredictionState.isTraining = true
+      globalPredictionState.lastTrainingStart = Date.now()
+      globalPredictionState.hasNewResults = false
+      notifyPredictionStateChange()
+
+      const response = await api.post('/predict')
+      return response.data
+    } catch (error) {
+      // Reset state on error
+      globalPredictionState.isTraining = false
+      globalPredictionState.hasNewResults = false
+      notifyPredictionStateChange()
+      throw error
+    }
+  },
+
+  // Get all prediction tasks
+  async getTasks() {
+    const response = await api.get('/predict/tasks')
+    return response.data
+  },
+
+  // Get specific task with results
+  async getTask(taskId) {
+    const response = await api.get(`/predict/tasks/${taskId}`)
+    return response.data
+  },
+
+  // Poll for task completion
+  async pollTaskStatus(taskId, onUpdate) {
+    const poll = async () => {
+      try {
+        const response = await this.getTask(taskId)
+        const task = response.task
+        
+        onUpdate(task)
+        
+        if (task.status === 'completed') {
+          globalPredictionState.isTraining = false
+          globalPredictionState.results = task.results
+          globalPredictionState.hasNewResults = true
+          notifyPredictionStateChange()
+          return task
+        } else if (task.status === 'failed') {
+          globalPredictionState.isTraining = false
+          globalPredictionState.hasNewResults = false
+          notifyPredictionStateChange()
+          throw new Error('Prediction task failed')
+        } else {
+          // Still training, poll again
+          setTimeout(poll, 2000)
+        }
+      } catch (error) {
+        globalPredictionState.isTraining = false
+        globalPredictionState.hasNewResults = false
+        notifyPredictionStateChange()
+        throw error
+      }
+    }
+    
+    return poll()
+  },
+
+  // Get current prediction state
+  getState() {
+    return { ...globalPredictionState }
+  },
+
+  // Subscribe to state changes
+  onStateChange(listener) {
+    predictionStateListeners.add(listener)
+    return () => predictionStateListeners.delete(listener)
+  },
+
+  // Mark results as viewed
+  markResultsViewed() {
+    globalPredictionState.hasNewResults = false
+    notifyPredictionStateChange()
+  }
 }
 
 // Fund-specific API functions
