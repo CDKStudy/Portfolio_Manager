@@ -8,6 +8,8 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
     "test": "jest",
+    "test:stocks": "jest tests/stock-operations.test.js --verbose",
+    "test:simple": "node test-stocks.js",
     "db:setup": "mysql -u root -p < database/setup.sql",
     "db:reset": "mysql -u root -p -e \"DROP DATABASE IF EXISTS portfolio_manager; CREATE DATABASE portfolio_manager;\" && npm run db:setup"
   },
