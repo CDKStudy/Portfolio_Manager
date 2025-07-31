@@ -5,7 +5,7 @@
       <div class="asset-header">
         <h2>Fund Trading</h2>
         <button @click="showBuyModal = true" class="btn btn-primary">
-          + Add Fund Record
+          + Add Fund
         </button>
       </div>
       
@@ -87,7 +87,7 @@
     <div v-if="showBuyModal" class="modal-overlay" @click="showBuyModal = false">
       <div class="modal" @click.stop>
         <div class="modal-header">
-          <h3>Buy Fund</h3>
+          <h3>Add Fund</h3>
           <button @click="showBuyModal = false" class="close-btn">×</button>
         </div>
         <form @submit.prevent="buyFund" class="modal-form">
@@ -128,7 +128,7 @@
               Cancel
             </button>
             <button type="submit" :disabled="loading" class="btn btn-primary">
-              {{ loading ? 'Buying...' : 'Buy Fund' }}
+              {{ loading ? 'Adding...' : 'Add Fund' }}
             </button>
           </div>
         </form>
@@ -193,7 +193,7 @@
 </template>
 
 <script>
-import { onMounted, ref, nextTick, watch } from 'vue';
+import { nextTick, onMounted, ref, watch } from 'vue';
 import { fundAPI, portfolioAPI } from '../services/api';
 
 export default {
@@ -285,8 +285,8 @@ export default {
         // Show success message
         error.value = '';
       } catch (err) {
-        error.value = err.response?.data?.error || 'Failed to buy fund';
-        console.error('Error buying fund:', err);
+        error.value = err.response?.data?.error || 'Failed to add fund';
+        console.error('Error adding fund:', err);
       } finally {
         loading.value = false;
       }

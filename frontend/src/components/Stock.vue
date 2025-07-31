@@ -7,7 +7,7 @@
         <div class="asset-header">
           <h2>Stock Trading</h2>
           <button @click="showBuyModal = true" class="btn btn-primary">
-            + Add Stock Record
+            + Add Stock
           </button>
         </div>
         
@@ -163,7 +163,7 @@
     <div v-if="showBuyModal" class="modal-overlay" @click="showBuyModal = false">
       <div class="modal" @click.stop>
         <div class="modal-header">
-          <h3>Buy Stock</h3>
+          <h3>Add Stock</h3>
           <button @click="showBuyModal = false" class="close-btn">×</button>
         </div>
         <form @submit.prevent="buyStock" class="modal-form">
@@ -204,7 +204,7 @@
               Cancel
             </button>
             <button type="submit" :disabled="loading" class="btn btn-primary">
-              {{ loading ? 'Buying...' : 'Buy Stock' }}
+              {{ loading ? 'Adding...' : 'Add Stock' }}
             </button>
           </div>
         </form>
@@ -299,8 +299,8 @@
 </template>
 
 <script>
-import { onMounted, onUnmounted, ref, computed, nextTick, watch } from 'vue';
-import { portfolioAPI, stockAPI, predictionAPI } from '../services/api';
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { portfolioAPI, predictionAPI, stockAPI } from '../services/api';
 
 export default {
   name: 'Stock',
@@ -489,7 +489,7 @@ export default {
         // Show success message
         error.value = '';
       } catch (err) {
-        error.value = err.response?.data?.error || 'Failed to buy stock';
+        error.value = err.response?.data?.error || 'Failed to add stock';
         console.error('Error buying stock:', err);
       } finally {
         loading.value = false;
