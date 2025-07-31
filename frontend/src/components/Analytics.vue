@@ -19,6 +19,10 @@
               :options="pieChartOptions"
             />
           </div>
+          <div class="total-value">
+            <span class="total-label">Total Portfolio Value:</span>
+            <span class="total-amount">${{ formatCurrency(totalPortfolioValue) }}</span>
+          </div>
         </div>
 
         <!-- Stock Holdings -->
@@ -31,6 +35,10 @@
               :options="pieChartOptions"
             />
           </div>
+          <div class="total-value">
+            <span class="total-label">Total Stocks Value:</span>
+            <span class="total-amount">${{ formatCurrency(totalStocksValue) }}</span>
+          </div>
         </div>
 
         <!-- Fund Holdings -->
@@ -42,6 +50,10 @@
               :data="fundHoldingsData"
               :options="pieChartOptions"
             />
+          </div>
+          <div class="total-value">
+            <span class="total-label">Total Funds Value:</span>
+            <span class="total-amount">${{ formatCurrency(totalFundsValue) }}</span>
           </div>
         </div>
       </div>
@@ -112,6 +124,11 @@ export default {
             this.assetAllocation.stocks.percentage,
             this.assetAllocation.funds.percentage
           ],
+          actualValues: [
+            this.assetAllocation.cash.value || 0,
+            this.assetAllocation.stocks.value || 0,
+            this.assetAllocation.funds.value || 0
+          ],
           backgroundColor: [
             '#93c5fd', // Light blue for cash
             '#6ee7b7', // Light green for stocks
@@ -135,6 +152,7 @@ export default {
         labels: this.stockHoldings.map(holding => holding.ticker),
         datasets: [{
           data: this.stockHoldings.map(holding => holding.percentage),
+          actualValues: this.stockHoldings.map(holding => holding.value || 0),
           backgroundColor: [
             '#93c5fd', '#6ee7b7', '#fcd34d', '#fca5a5', '#c4b5fd',
             '#67e8f9', '#bef264', '#fdba74', '#f9a8d4', '#a5b4fc'
@@ -152,6 +170,7 @@ export default {
         labels: this.fundHoldings.map(holding => holding.ticker),
         datasets: [{
           data: this.fundHoldings.map(holding => holding.percentage),
+          actualValues: this.fundHoldings.map(holding => holding.value || 0),
           backgroundColor: [
             '#93c5fd', '#6ee7b7', '#fcd34d', '#fca5a5', '#c4b5fd',
             '#67e8f9', '#bef264', '#fdba74', '#f9a8d4', '#a5b4fc'
@@ -159,6 +178,26 @@ export default {
           borderWidth: 2
         }]
       }
+    },
+
+    // Total portfolio value
+    totalPortfolioValue() {
+      if (!this.assetAllocation) return 0
+      return (this.assetAllocation.cash.value || 0) + 
+             (this.assetAllocation.stocks.value || 0) + 
+             (this.assetAllocation.funds.value || 0)
+    },
+
+    // Total stocks value
+    totalStocksValue() {
+      if (!this.assetAllocation) return 0
+      return this.assetAllocation.stocks.value || 0
+    },
+
+    // Total funds value
+    totalFundsValue() {
+      if (!this.assetAllocation) return 0
+      return this.assetAllocation.funds.value || 0
     },
 
     // Pie chart options
@@ -181,7 +220,19 @@ export default {
               label: function(context) {
                 const label = context.label || ''
                 const value = context.parsed || 0
-                return `${label}: ${value.toFixed(1)}%`
+                const datasetIndex = context.datasetIndex
+                const dataIndex = context.dataIndex
+                
+                // Get the actual value based on chart type
+                let actualValue = 0
+                if (context.chart.data.datasets[datasetIndex].actualValues) {
+                  actualValue = context.chart.data.datasets[datasetIndex].actualValues[dataIndex] || 0
+                }
+                
+                return [
+                  `${label}: ${value.toFixed(1)}%`,
+                  `Value: $${actualValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                ]
               }
             }
           }
@@ -245,6 +296,13 @@ export default {
     this.generatePerformanceData()
   },
   methods: {
+    formatCurrency(value) {
+      if (value === null || value === undefined) return '0.00'
+      return Number(value).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })
+    },
     async loadAnalyticsData() {
       this.loading = true
       this.error = null
@@ -405,6 +463,29 @@ export default {
 .pie-chart-container {
   height: 250px;
   position: relative;
+}
+
+.total-value {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+  margin-top: 16px;
+  border: 1px solid #e2e8f0;
+}
+
+.total-label {
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.total-amount {
+  font-size: 1.1rem;
+  color: #1f2937;
+  font-weight: 600;
 }
 
 .line-chart-card {
