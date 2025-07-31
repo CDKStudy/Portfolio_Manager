@@ -11,8 +11,7 @@
           </svg>
         </div>
         <div class="card-content">
-          <div class="card-value">${{ formatCurrency(stockHoldings.totalValue +fundHoldings.totalValue +userInfo.cash)
-}}</div>
+          <div class="card-value">${{ formatCurrency(stockHoldings.totalValue +fundHoldings.totalValue +userInfo.cash)}}</div>
           <!-- <div class="card-change positive">
             <span class="change-icon">📈</span>
             <span>+2.5% from last month</span>
@@ -29,7 +28,7 @@
           </svg>
         </div>
         <div class="card-content">
-          <div class="card-value">${{ formatCurrency(stockHoldings.totalValue) }}</div>
+          <div class="card-value">${{ formatCurrency(stockHoldings.totalValue)  }}</div>
           <div class="card-hint">Click to view Stocks →</div>
           <!-- <div class="card-change positive">
             <span class="change-icon">📈</span>
@@ -118,13 +117,14 @@
               <div class="holding-type" :class="holding.type">
                 {{ holding.type.toUpperCase() }}
               </div>
-            </div>
-            <div class="holding-value">
+            </div> 
+            <!-- 使用未定义变量 导致HTMLX渲染异常，某些变量无法更新，已禁用-->
+            <!-- <div class="holding-value">
               <div class="value-amount">${{ formatCurrency(holding.currentValue) }}</div>
               <div class="value-change" :class="holding.changePercent >= 0 ? 'positive' : 'negative'">
                 {{ holding.changePercent >= 0 ? '+' : '' }}{{ holding.changePercent.toFixed(2) }}%
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
@@ -167,7 +167,7 @@ import {
   Title,
   Tooltip
 } from 'chart.js';
-import { onMounted, reactive, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { Line } from 'vue-chartjs';
 import { useRouter } from 'vue-router';
 import { portfolioAPI, stockAPI } from '../services/api';
@@ -202,14 +202,6 @@ export default {
     const error = ref('');
     //Empty array for market stocks
     const marketStocks = ref([]);
-    // const marketStocks = ref([
-    //   { ticker: 'AAPL', price: 213.88, change: 1.28, changePercent: 0.06 },
-    //   { ticker: 'MSFT', price: 513.71, change: 2.82, changePercent: 0.55 },
-    //   { ticker: 'GOOGL', price: 193.18, change: 1.02, changePercent: 0.53 },
-    //   { ticker: 'AMZN', price: 231.44, change: -0.79, changePercent: -0.34 },
-    //   { ticker: 'TSLA', price: 316.06, change: 11.11, changePercent: 3.52 },
-    //   { ticker: 'META', price: 712.68, change: -2.14, changePercent: -0.30 }
-    // ]);
     const userInfo = ref({
       id: 1,
       username: 'john_doe',
@@ -217,12 +209,12 @@ export default {
       netWorth: 45231.89
     });
     const allHoldings = ref([]);
-    const stockHoldings = reactive({
+    const stockHoldings = ref({
       items: [],
       totalValue: 0
     });
 
-    const fundHoldings = reactive({
+    const fundHoldings = ref({
       items: [],
       totalValue: 0
     });
@@ -311,7 +303,6 @@ export default {
         // Load portfolio summary
         const portfolioResponse = await portfolioAPI.getPortfolio();
         portfolio.value = portfolioResponse.data;
-        console.log('Portfolio loaded:', portfolio.value);
 
         // Load user info
         const userResponse = await portfolioAPI.getUser();
@@ -320,27 +311,16 @@ export default {
         // Load holdings
         const holdingsResponse = await portfolioAPI.getHoldings();
         allHoldings.value = holdingsResponse.data.holdings || [];
-        console.log('Holdings loaded:', allHoldings.value);
 
         // Separate stocks and funds
-        stockHoldings.items = allHoldings.value.filter(h => h.type === 'stock');
-        fundHoldings.items = allHoldings.value.filter(h => h.type === 'fund');
-        // console.log('Stock Holdings:', stockHoldings.value.items);
-        // console.log('Fund Holdings:', fundHoldings.value.items);
+        stockHoldings.value.items = allHoldings.value.filter(h => h.type === 'stock');
+        fundHoldings.value.items = allHoldings.value.filter(h => h.type === 'fund');
 
         // Calculate totals
-        // stockHoldings.value.totalValue = stockHoldings.value.items.reduce((sum, h) => 
-        //   sum + (h.totalValue || (h.quantity * (h.currentPrice || h.buyPrice))), 0);
-        // fundHoldings.value.totalValue = fundHoldings.value.items.reduce((sum, h) => 
-        //   sum + (h.totalValue || (h.quantity * (h.currentPrice || h.buyPrice))), 0);
-
-          stockHoldings.totalValue = stockHoldings.items.reduce((sum, h) => 
+        stockHoldings.value.totalValue = stockHoldings.value.items.reduce((sum, h) => 
           sum + (h.totalValue || (h.quantity * (h.currentPrice || h.buyPrice))), 0);
-        fundHoldings.totalValue = fundHoldings.items.reduce((sum, h) => 
+        fundHoldings.value.totalValue = fundHoldings.value.items.reduce((sum, h) => 
           sum + (h.totalValue || (h.quantity * (h.currentPrice || h.buyPrice))), 0);
-
-        console.log('Stock Total Value:', stockHoldings.totalValue);
-        console.log('Fund Total Value:', fundHoldings.totalValue);
 
       } catch (err) {
         error.value = 'Failed to load portfolio';
