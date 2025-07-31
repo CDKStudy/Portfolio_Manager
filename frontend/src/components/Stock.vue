@@ -7,7 +7,7 @@
         <div class="asset-header">
           <h2>Stock Trading</h2>
           <button @click="showBuyModal = true" class="btn btn-primary">
-            + Add Stock
+            + Buy Stock
           </button>
         </div>
         
@@ -163,7 +163,7 @@
     <div v-if="showBuyModal" class="modal-overlay" @click="showBuyModal = false">
       <div class="modal" @click.stop>
         <div class="modal-header">
-          <h3>Add Stock</h3>
+          <h3>Buy Stock</h3>
           <button @click="showBuyModal = false" class="close-btn">×</button>
         </div>
         <form @submit.prevent="buyStock" class="modal-form">
@@ -204,7 +204,7 @@
               Cancel
             </button>
             <button type="submit" :disabled="loading" class="btn btn-primary">
-              {{ loading ? 'Adding...' : 'Add Stock' }}
+              {{ loading ? 'Buying...' : 'Buy Stock' }}
             </button>
           </div>
         </form>
@@ -489,7 +489,7 @@ export default {
         // Show success message
         error.value = '';
       } catch (err) {
-        error.value = err.response?.data?.error || 'Failed to add stock';
+        error.value = err.response?.data?.error || 'Failed to buy stock';
         console.error('Error buying stock:', err);
       } finally {
         loading.value = false;
