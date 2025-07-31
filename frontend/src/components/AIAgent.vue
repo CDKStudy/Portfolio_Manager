@@ -70,15 +70,23 @@
         <h3>Portfolio Context</h3>
         <div class="context-item">
           <span class="label">Total Assets:</span>
-          <span class="value">${{ portfolioSummary?.totalValue || '0.00' }}</span>
+          <span class="value">${{ formatCurrency(portfolioSummary?.netWorth || 0) }}</span>
         </div>
         <div class="context-item">
           <span class="label">Cash Balance:</span>
-          <span class="value">${{ portfolioSummary?.cash || '0.00' }}</span>
+          <span class="value">${{ formatCurrency(portfolioSummary?.cash) }}</span>
+        </div>
+        <div class="context-item">
+          <span class="label">Stocks:</span>
+          <span class="value">${{ formatCurrency(portfolioSummary?.stockValue || 0) }}</span>
+        </div>
+        <div class="context-item">
+          <span class="label">Funds:</span>
+          <span class="value">${{ formatCurrency(portfolioSummary?.fundValue || 0) }}</span>
         </div>
         <div class="context-item">
           <span class="label">Holdings:</span>
-          <span class="value">{{ portfolioSummary?.holdingsCount || 0 }} items</span>
+          <span class="value">{{ portfolioSummary?.totalItems || 0 }} items</span>
         </div>
       </div>
 
@@ -141,6 +149,14 @@ export default {
     const portfolioSummary = ref(null)
 
 
+
+    const formatCurrency = (value) => {
+      if (value === null || value === undefined) return '0.00'
+      return Number(value).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })
+    }
 
     const formatTime = (timestamp) => {
       return new Date(timestamp).toLocaleTimeString()
@@ -223,8 +239,35 @@ export default {
 
     const loadPortfolioSummary = async () => {
       try {
-        const response = await portfolioAPI.getPortfolio()
-        portfolioSummary.value = response.data
+        // Get user info for cash balance
+        const userResponse = await portfolioAPI.getUser()
+        const userInfo = userResponse.data
+        
+        // Get holdings with real-time prices
+        const holdingsResponse = await portfolioAPI.getHoldings()
+        const holdings = holdingsResponse.data.holdings || []
+        
+        // Calculate total value from real-time prices
+        const totalValue = holdings.reduce((sum, holding) => 
+          sum + (holding.totalValue || (holding.quantity * (holding.currentPrice || holding.buyPrice))), 0)
+        
+        // Calculate totals by type
+        const stockHoldings = holdings.filter(h => h.type === 'stock')
+        const fundHoldings = holdings.filter(h => h.type === 'fund')
+        
+        const stockValue = stockHoldings.reduce((sum, h) => 
+          sum + (h.totalValue || (h.quantity * (h.currentPrice || h.buyPrice))), 0)
+        const fundValue = fundHoldings.reduce((sum, h) => 
+          sum + (h.totalValue || (h.quantity * (h.currentPrice || h.buyPrice))), 0)
+        
+        portfolioSummary.value = {
+          totalValue: totalValue,
+          cash: userInfo.cash,
+          totalItems: holdings.length,
+          stockValue: stockValue,
+          fundValue: fundValue,
+          netWorth: totalValue + userInfo.cash
+        }
       } catch (error) {
         console.error('Failed to load portfolio summary:', error)
       }
@@ -242,6 +285,7 @@ export default {
       isConnected,
       messagesContainer,
       portfolioSummary,
+      formatCurrency,
       formatTime,
       formatMessage,
       sendMessage
