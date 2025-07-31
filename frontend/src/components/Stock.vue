@@ -7,7 +7,7 @@
         <div class="asset-header">
           <h2>Stock Trading</h2>
           <button @click="showBuyModal = true" class="btn btn-primary">
-            + Buy Stock
+            + Add Stock
           </button>
         </div>
         
