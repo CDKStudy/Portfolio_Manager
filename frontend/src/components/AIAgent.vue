@@ -191,7 +191,24 @@ export default {
 
     const callDouBaoAPI = async (message) => {
       try {
-        const response = await aiAPI.chat(message, portfolioSummary.value)
+        // 构建完整的投资组合上下文，包含所有必要信息
+        const portfolioContext = {
+          totalValue: portfolioSummary.value?.totalValue || 0,
+          cash: portfolioSummary.value?.cash || 0,
+          totalItems: portfolioSummary.value?.totalItems || 0,
+          stockValue: portfolioSummary.value?.stockValue || 0,
+          fundValue: portfolioSummary.value?.fundValue || 0,
+          netWorth: portfolioSummary.value?.netWorth || 0,
+          // 添加资产分配百分比
+          stockPercentage: portfolioSummary.value?.totalValue > 0 ? 
+            (portfolioSummary.value.stockValue / portfolioSummary.value.totalValue * 100).toFixed(1) : 0,
+          fundPercentage: portfolioSummary.value?.totalValue > 0 ? 
+            (portfolioSummary.value.fundValue / portfolioSummary.value.totalValue * 100).toFixed(1) : 0,
+          cashPercentage: portfolioSummary.value?.netWorth > 0 ? 
+            (portfolioSummary.value.cash / portfolioSummary.value.netWorth * 100).toFixed(1) : 0
+        }
+        
+        const response = await aiAPI.chat(message, portfolioContext)
         return response.data.response
       } catch (error) {
         console.error('AI API Error:', error)
@@ -202,11 +219,11 @@ export default {
 
     const generateMockResponse = (message) => {
       const responses = {
-        'portfolio performance': 'Based on your portfolio data, I can see you have a diversified mix of stocks and funds. Your current allocation shows a 60/40 split between equities and fixed income, which is a solid foundation. Would you like me to analyze specific performance metrics or suggest rebalancing opportunities?',
-        'invest': 'Looking at your current holdings and market conditions, I recommend considering these opportunities:\n\n1. **Technology ETFs** - For growth potential\n2. **Dividend-paying stocks** - For income generation\n3. **International exposure** - For diversification\n\nWould you like me to provide specific recommendations based on your risk tolerance?',
-        'risk': 'Your current portfolio shows moderate risk exposure. Here\'s my assessment:\n\n• **Equity allocation**: 60% (Moderate risk)\n• **Fixed income**: 40% (Lower risk)\n• **Geographic diversification**: Good\n• **Sector concentration**: Watch tech exposure\n\nConsider rebalancing if your risk tolerance has changed.',
-        'market': 'Current market analysis:\n\n📈 **Bullish indicators**:\n• Strong earnings growth\n• Low unemployment\n• Fed policy support\n\n⚠️ **Risks to watch**:\n• Inflation concerns\n• Geopolitical tensions\n• Interest rate changes\n\nI recommend staying diversified and dollar-cost averaging.',
-        'rebalancing': 'Based on your current portfolio, here are my rebalancing recommendations:\n\n1. **Reduce tech exposure** if >30% of portfolio\n2. **Increase international** to 20-25%\n3. **Add defensive stocks** for stability\n4. **Consider bonds** for income\n\nWould you like a detailed rebalancing plan?'
+        'portfolio performance': 'Based on your portfolio data, I can analyze your current asset allocation and performance. I can see your total net worth, stock and fund holdings, and cash position. Would you like me to provide a detailed analysis of your portfolio performance, including risk assessment and growth potential?',
+        'invest': 'Looking at your current portfolio allocation, I can provide personalized investment recommendations based on your specific holdings and risk profile. I can suggest:\n\n1. **Diversification opportunities** - Based on your current asset mix\n2. **Growth investments** - Stocks and funds for capital appreciation\n3. **Income investments** - Dividend-paying stocks and bond funds\n4. **International exposure** - For geographic diversification\n\nWould you like specific recommendations based on your current allocation?',
+        'risk': 'I can assess your portfolio risk based on your current asset allocation. Let me analyze:\n\n• **Stock allocation** - Your current equity exposure\n• **Fund allocation** - Your fund holdings and their risk profile\n• **Cash position** - Your liquidity and safety buffer\n• **Overall diversification** - How well your portfolio is spread\n\nWould you like a detailed risk assessment?',
+        'market': 'Current market analysis:\n\n📈 **Bullish indicators**:\n• Strong earnings growth\n• Low unemployment\n• Fed policy support\n\n⚠️ **Risks to watch**:\n• Inflation concerns\n• Geopolitical tensions\n• Interest rate changes\n\nI recommend staying diversified and dollar-cost averaging based on your current portfolio.',
+        'rebalancing': 'Based on your current portfolio allocation, I can provide rebalancing recommendations to optimize your asset mix. I can suggest:\n\n1. **Asset allocation adjustments** - Based on your current stock/fund/cash split\n2. **Risk management** - Adjusting exposure based on market conditions\n3. **Diversification improvements** - Adding missing asset classes\n4. **Cash management** - Optimizing your liquidity position\n\nWould you like a personalized rebalancing plan?'
       }
 
       const lowerMessage = message.toLowerCase()
