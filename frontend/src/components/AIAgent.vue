@@ -3,7 +3,10 @@
     <div class="chat-container">
       <div class="chat-header">
         <div class="chat-title">
-          <span class="chat-icon">🤖</span>
+          <svg class="chat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+          </svg>
           <span>AI Portfolio Assistant</span>
         </div>
         <div class="ai-status" :class="{ online: isConnected }">
@@ -19,8 +22,14 @@
           :class="message.type"
         >
           <div class="message-avatar">
-            <i v-if="message.type === 'user'" class="avatar-icon">👤</i>
-            <i v-else class="avatar-icon">🤖</i>
+            <svg v-if="message.type === 'user'" class="avatar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            <svg v-else class="avatar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
           </div>
           <div class="message-content">
             <div class="message-text" v-html="formatMessage(message.content)"></div>
@@ -30,7 +39,10 @@
         
         <div v-if="isLoading" class="message ai">
           <div class="message-avatar">
-            <i class="avatar-icon">🤖</i>
+            <svg class="avatar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
           </div>
           <div class="message-content">
             <div class="typing-indicator">
@@ -57,7 +69,10 @@
             class="send-button"
             :disabled="!userInput.trim() || isLoading"
           >
-            <i class="send-icon">📤</i>
+            <svg class="send-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
           </button>
         </div>
         
@@ -70,15 +85,23 @@
         <h3>Portfolio Context</h3>
         <div class="context-item">
           <span class="label">Total Assets:</span>
-          <span class="value">${{ portfolioSummary?.totalValue || '0.00' }}</span>
+          <span class="value">${{ formatCurrency(portfolioSummary?.netWorth || 0) }}</span>
         </div>
         <div class="context-item">
           <span class="label">Cash Balance:</span>
-          <span class="value">${{ portfolioSummary?.cash || '0.00' }}</span>
+          <span class="value">${{ formatCurrency(portfolioSummary?.cash) }}</span>
+        </div>
+        <div class="context-item">
+          <span class="label">Stocks:</span>
+          <span class="value">${{ formatCurrency(portfolioSummary?.stockValue || 0) }}</span>
+        </div>
+        <div class="context-item">
+          <span class="label">Funds:</span>
+          <span class="value">${{ formatCurrency(portfolioSummary?.fundValue || 0) }}</span>
         </div>
         <div class="context-item">
           <span class="label">Holdings:</span>
-          <span class="value">{{ portfolioSummary?.holdingsCount || 0 }} items</span>
+          <span class="value">{{ portfolioSummary?.totalItems || 0 }} items</span>
         </div>
       </div>
 
@@ -142,6 +165,14 @@ export default {
 
 
 
+    const formatCurrency = (value) => {
+      if (value === null || value === undefined) return '0.00'
+      return Number(value).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })
+    }
+
     const formatTime = (timestamp) => {
       return new Date(timestamp).toLocaleTimeString()
     }
@@ -175,7 +206,24 @@ export default {
 
     const callDouBaoAPI = async (message) => {
       try {
-        const response = await aiAPI.chat(message, portfolioSummary.value)
+        // 构建完整的投资组合上下文，包含所有必要信息
+        const portfolioContext = {
+          totalValue: portfolioSummary.value?.totalValue || 0,
+          cash: portfolioSummary.value?.cash || 0,
+          totalItems: portfolioSummary.value?.totalItems || 0,
+          stockValue: portfolioSummary.value?.stockValue || 0,
+          fundValue: portfolioSummary.value?.fundValue || 0,
+          netWorth: portfolioSummary.value?.netWorth || 0,
+          // 添加资产分配百分比
+          stockPercentage: portfolioSummary.value?.totalValue > 0 ? 
+            (portfolioSummary.value.stockValue / portfolioSummary.value.totalValue * 100).toFixed(1) : 0,
+          fundPercentage: portfolioSummary.value?.totalValue > 0 ? 
+            (portfolioSummary.value.fundValue / portfolioSummary.value.totalValue * 100).toFixed(1) : 0,
+          cashPercentage: portfolioSummary.value?.netWorth > 0 ? 
+            (portfolioSummary.value.cash / portfolioSummary.value.netWorth * 100).toFixed(1) : 0
+        }
+        
+        const response = await aiAPI.chat(message, portfolioContext)
         return response.data.response
       } catch (error) {
         console.error('AI API Error:', error)
@@ -186,11 +234,11 @@ export default {
 
     const generateMockResponse = (message) => {
       const responses = {
-        'portfolio performance': 'Based on your portfolio data, I can see you have a diversified mix of stocks and funds. Your current allocation shows a 60/40 split between equities and fixed income, which is a solid foundation. Would you like me to analyze specific performance metrics or suggest rebalancing opportunities?',
-        'invest': 'Looking at your current holdings and market conditions, I recommend considering these opportunities:\n\n1. **Technology ETFs** - For growth potential\n2. **Dividend-paying stocks** - For income generation\n3. **International exposure** - For diversification\n\nWould you like me to provide specific recommendations based on your risk tolerance?',
-        'risk': 'Your current portfolio shows moderate risk exposure. Here\'s my assessment:\n\n• **Equity allocation**: 60% (Moderate risk)\n• **Fixed income**: 40% (Lower risk)\n• **Geographic diversification**: Good\n• **Sector concentration**: Watch tech exposure\n\nConsider rebalancing if your risk tolerance has changed.',
-        'market': 'Current market analysis:\n\n📈 **Bullish indicators**:\n• Strong earnings growth\n• Low unemployment\n• Fed policy support\n\n⚠️ **Risks to watch**:\n• Inflation concerns\n• Geopolitical tensions\n• Interest rate changes\n\nI recommend staying diversified and dollar-cost averaging.',
-        'rebalancing': 'Based on your current portfolio, here are my rebalancing recommendations:\n\n1. **Reduce tech exposure** if >30% of portfolio\n2. **Increase international** to 20-25%\n3. **Add defensive stocks** for stability\n4. **Consider bonds** for income\n\nWould you like a detailed rebalancing plan?'
+        'portfolio performance': 'Based on your portfolio data, I can analyze your current asset allocation and performance. I can see your total net worth, stock and fund holdings, and cash position. Would you like me to provide a detailed analysis of your portfolio performance, including risk assessment and growth potential?',
+        'invest': 'Looking at your current portfolio allocation, I can provide personalized investment recommendations based on your specific holdings and risk profile. I can suggest:\n\n1. **Diversification opportunities** - Based on your current asset mix\n2. **Growth investments** - Stocks and funds for capital appreciation\n3. **Income investments** - Dividend-paying stocks and bond funds\n4. **International exposure** - For geographic diversification\n\nWould you like specific recommendations based on your current allocation?',
+        'risk': 'I can assess your portfolio risk based on your current asset allocation. Let me analyze:\n\n• **Stock allocation** - Your current equity exposure\n• **Fund allocation** - Your fund holdings and their risk profile\n• **Cash position** - Your liquidity and safety buffer\n• **Overall diversification** - How well your portfolio is spread\n\nWould you like a detailed risk assessment?',
+        'market': 'Current market analysis:\n\n📈 **Bullish indicators**:\n• Strong earnings growth\n• Low unemployment\n• Fed policy support\n\n⚠️ **Risks to watch**:\n• Inflation concerns\n• Geopolitical tensions\n• Interest rate changes\n\nI recommend staying diversified and dollar-cost averaging based on your current portfolio.',
+        'rebalancing': 'Based on your current portfolio allocation, I can provide rebalancing recommendations to optimize your asset mix. I can suggest:\n\n1. **Asset allocation adjustments** - Based on your current stock/fund/cash split\n2. **Risk management** - Adjusting exposure based on market conditions\n3. **Diversification improvements** - Adding missing asset classes\n4. **Cash management** - Optimizing your liquidity position\n\nWould you like a personalized rebalancing plan?'
       }
 
       const lowerMessage = message.toLowerCase()
@@ -223,8 +271,35 @@ export default {
 
     const loadPortfolioSummary = async () => {
       try {
-        const response = await portfolioAPI.getPortfolio()
-        portfolioSummary.value = response.data
+        // Get user info for cash balance
+        const userResponse = await portfolioAPI.getUser()
+        const userInfo = userResponse.data
+        
+        // Get holdings with real-time prices
+        const holdingsResponse = await portfolioAPI.getHoldings()
+        const holdings = holdingsResponse.data.holdings || []
+        
+        // Calculate total value from real-time prices
+        const totalValue = holdings.reduce((sum, holding) => 
+          sum + (holding.totalValue || (holding.quantity * (holding.currentPrice || holding.buyPrice))), 0)
+        
+        // Calculate totals by type
+        const stockHoldings = holdings.filter(h => h.type === 'stock')
+        const fundHoldings = holdings.filter(h => h.type === 'fund')
+        
+        const stockValue = stockHoldings.reduce((sum, h) => 
+          sum + (h.totalValue || (h.quantity * (h.currentPrice || h.buyPrice))), 0)
+        const fundValue = fundHoldings.reduce((sum, h) => 
+          sum + (h.totalValue || (h.quantity * (h.currentPrice || h.buyPrice))), 0)
+        
+        portfolioSummary.value = {
+          totalValue: totalValue,
+          cash: userInfo.cash,
+          totalItems: holdings.length,
+          stockValue: stockValue,
+          fundValue: fundValue,
+          netWorth: totalValue + userInfo.cash
+        }
       } catch (error) {
         console.error('Failed to load portfolio summary:', error)
       }
@@ -242,6 +317,7 @@ export default {
       isConnected,
       messagesContainer,
       portfolioSummary,
+      formatCurrency,
       formatTime,
       formatMessage,
       sendMessage
@@ -257,7 +333,7 @@ export default {
   gap: 24px;
   padding: 24px;
   width: 100%;
-  background: #f1f5f9;
+  background: #f9fafb;
 }
 
 .chat-header {
@@ -265,9 +341,10 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: white;
+  color: #1f2937;
   border-radius: 12px 12px 0 0;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .chat-title {
@@ -276,10 +353,13 @@ export default {
   gap: 10px;
   font-size: 1.2rem;
   font-weight: 600;
+  color: #1f2937;
 }
 
 .chat-icon {
-  font-size: 1.5rem;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
 }
 
 .ai-status {
@@ -287,18 +367,19 @@ export default {
   align-items: center;
   gap: 8px;
   font-size: 0.9rem;
+  color: #6b7280;
 }
 
 .status-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #ff4757;
+  background: #ef4444;
   animation: pulse 2s infinite;
 }
 
 .status-dot.online {
-  background: #2ed573;
+  background: #10b981;
 }
 
 @keyframes pulse {
@@ -312,11 +393,12 @@ export default {
   display: flex;
   flex-direction: column;
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   position: relative;
   height: calc(100vh - 140px);
+  border: 1px solid #e5e7eb;
 }
 
 .chat-messages {
@@ -326,7 +408,7 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background: #f8fafc;
+  background: #f9fafb;
 }
 
 .message {
@@ -355,15 +437,17 @@ export default {
 }
 
 .message.user .message-avatar {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #3b82f6;
 }
 
 .message.ai .message-avatar {
-  background: linear-gradient(135deg, #2ed573 0%, #1e90ff 100%);
+  background: #10b981;
 }
 
 .avatar-icon {
-  font-size: 1.2rem;
+  width: 20px;
+  height: 20px;
+  color: white;
 }
 
 .message-content {
@@ -375,13 +459,13 @@ export default {
 }
 
 .message.user .message-content {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #3b82f6;
   color: white;
 }
 
 .message.ai .message-content {
   background: white;
-  border: 1px solid #e9ecef;
+  border: 1px solid #e5e7eb;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -391,7 +475,7 @@ export default {
 }
 
 .message-text :deep(code) {
-  background: #f1f3f4;
+  background: #f3f4f6;
   padding: 2px 6px;
   border-radius: 4px;
   font-family: 'Courier New', monospace;
@@ -399,7 +483,7 @@ export default {
 
 .message-time {
   font-size: 0.75rem;
-  color: #6c757d;
+  color: #6b7280;
   text-align: right;
 }
 
@@ -417,7 +501,7 @@ export default {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #6c757d;
+  background: #6b7280;
   animation: typing 1.4s infinite ease-in-out;
 }
 
@@ -431,7 +515,7 @@ export default {
 
 .chat-input-container {
   padding: 16px 20px;
-  border-top: 1px solid #e9ecef;
+  border-top: 1px solid #e5e7eb;
   background: white;
 }
 
@@ -444,7 +528,7 @@ export default {
 .chat-input {
   flex: 1;
   padding: 12px 16px;
-  border: 2px solid #e9ecef;
+  border: 2px solid #e5e7eb;
   border-radius: 24px;
   resize: none;
   font-family: inherit;
@@ -456,11 +540,12 @@ export default {
 
 .chat-input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .chat-input:disabled {
-  background: #f8f9fa;
+  background: #f9fafb;
   cursor: not-allowed;
 }
 
@@ -469,7 +554,7 @@ export default {
   height: 48px;
   border: none;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #3b82f6;
   color: white;
   cursor: pointer;
   display: flex;
@@ -480,15 +565,18 @@ export default {
 
 .send-button:hover:not(:disabled) {
   transform: scale(1.05);
+  background: #2563eb;
 }
 
 .send-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  background: #9ca3af;
 }
 
 .send-icon {
-  font-size: 1.2rem;
+  width: 20px;
+  height: 20px;
 }
 
 
@@ -497,17 +585,18 @@ export default {
   width: 260px;
   flex: 1;
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 24px;
+  border: 1px solid #e5e7eb;
 }
 
 .sidebar-section h3 {
   margin: 0 0 16px 0;
-  color: #495057;
+  color: #1f2937;
   font-size: 1.1rem;
   font-weight: 600;
 }
@@ -517,7 +606,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
-  border-bottom: 1px solid #f1f3f4;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .context-item:last-child {
@@ -525,12 +614,12 @@ export default {
 }
 
 .context-item .label {
-  color: #6c757d;
+  color: #6b7280;
   font-size: 0.9rem;
 }
 
 .context-item .value {
-  color: #495057;
+  color: #1f2937;
   font-weight: 600;
   font-size: 0.9rem;
 }
@@ -543,13 +632,17 @@ export default {
 
 .capabilities-list li {
   padding: 8px 0;
-  color: #495057;
+  color: #1f2937;
   font-size: 0.9rem;
-  border-bottom: 1px solid #f1f3f4;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .capabilities-list li:last-child {
   border-bottom: none;
+}
+
+.capabilities-list li:hover {
+  color: #3b82f6;
 }
 
 .capabilities-list li {
@@ -562,6 +655,7 @@ export default {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
+  color: #3b82f6;
 }
 
 /* Responsive Design */
